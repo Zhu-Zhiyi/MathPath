@@ -1,0 +1,1895 @@
+{
+  "chains_as_formal_sums": {
+    "node_id": "chains_as_formal_sums",
+    "title": "把几何片段变成可以相加的链",
+    "definition": "这里使用整数系数的单纯同调。先给每个单形选定方向，n 维链是有限个定向 n 单形的整数线性组合：c = Σ aᵢσᵢ，aᵢ ∈ ℤ。这些链组成自由阿贝尔群 C_n。负系数表示方向反转，绝对值表示代数重数。",
+    "intuition": "链像一张有方向和数量的清单。相加时合并同一种片段的系数，互为相反数的项抵消；无需先把片段排成一条连续路径。因此链保留代数数量，不能只看它覆盖了哪些点。",
+    "example": "选定从 v₀ 到 v₁ 的边 e。2e 表示这条定向边的重数为 2，−e 表示相反方向的重数为 1，2e + (−e) = e。即使 e 和 2e 的几何支集相同，它们也是不同的链。",
+    "proof_idea": "固定定向单形后，把链定义为这些符号的有限整数线性组合；逐项相加给出阿贝尔群运算，零链的所有系数都为零。这就是自由阿贝尔群的构造。链能否闭合，要再用边界算子检查。",
+    "exercise": {
+      "question": "固定一条定向边 e，整数系数链 3e + (−2e) 等于什么？",
+      "options": [
+        "零链",
+        "e",
+        "5e",
+        "不能相加，因为方向不同"
+      ],
+      "correct_index": 1,
+      "explanation": "同一条定向边的系数直接相加：3 + (−2) = 1。负号已经表达相反方向，所以结果是 e。",
+      "dimension": "application"
+    },
+    "source": "curated_example",
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "使用整数系数，固定两条不同的定向边 e、f 作为 C₁ 的基。若 c = 3e − 2f，d = −e + 5f，求 c+d 与 c−d，并解释为什么要逐项保留系数。",
+        "hint": "把每个链看成基 e、f 的系数对，再分别相加或相减。",
+        "answer": "c+d = 2e+3f，c−d = 4e−7f。系数对分别是 (3,−2) 与 (−1,5)。C₁ 是以选定定向边为基的自由阿贝尔群；边的支集不能代替整数系数，负系数也不能当作没有这条边。"
+      },
+      {
+        "level": "challenge",
+        "question": "使用整数系数，三角形的三条边 e₀₁=[v₀,v₁]、e₁₂=[v₁,v₂]、e₀₂=[v₀,v₂] 是 C₁ 的基。把 w=2e₀₁−3e₁₂+e₀₂ 改写为 a e₁₀+b e₂₁+c e₀₂，其中 e₁₀=−e₀₁，e₂₁=−e₁₂。只比较链、不取商时，能否再把 e₀₁+e₁₂ 替换为 e₀₂？",
+        "hint": "先处理反向的负号，再比较三个基元素的系数；端点相同不等于链相同。",
+        "answer": "a=−2，b=3，c=1，因此 w=−2e₁₀+3e₂₁+e₀₂。不能把 e₀₁+e₁₂ 换成 e₀₂：它们的系数分别为 (1,1,0) 与 (0,0,1)，是自由阿贝尔群中的不同元素。即使两条路线的起终点相同，也不产生链的相等关系。"
+      }
+    ],
+    "illustration": {
+      "title": "方向与代数重数",
+      "caption": "整数系数；三行重复示意同一条基边 e=[v₀,v₁]，并非三条不同的边。e 与 2e 的箭头相同，系数不同；−e 的箭头反向。画出的支集不能表达全部链数据。",
+      "alt": "三行同一条边：e 从左侧 v₀ 指向右侧 v₁；2e 方向相同但整数重数为二；−e 指向左侧。三行只是对照示意。",
+      "elements": [
+        {
+          "type": "text",
+          "x": 130,
+          "y": 98,
+          "text": "e",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 245,
+          "y1": 90,
+          "x2": 455,
+          "y2": 90,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "circle",
+          "cx": 245,
+          "cy": 90,
+          "r": 5,
+          "tone": "ink",
+          "fill": true
+        },
+        {
+          "type": "circle",
+          "cx": 455,
+          "cy": 90,
+          "r": 5,
+          "tone": "ink",
+          "fill": true
+        },
+        {
+          "type": "text",
+          "x": 130,
+          "y": 188,
+          "text": "2e",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 245,
+          "y1": 180,
+          "x2": 455,
+          "y2": 180,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "circle",
+          "cx": 245,
+          "cy": 180,
+          "r": 5,
+          "tone": "ink",
+          "fill": true
+        },
+        {
+          "type": "circle",
+          "cx": 455,
+          "cy": 180,
+          "r": 5,
+          "tone": "ink",
+          "fill": true
+        },
+        {
+          "type": "text",
+          "x": 130,
+          "y": 278,
+          "text": "−e",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 455,
+          "y1": 270,
+          "x2": 245,
+          "y2": 270,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "circle",
+          "cx": 245,
+          "cy": 270,
+          "r": 5,
+          "tone": "ink",
+          "fill": true
+        },
+        {
+          "type": "circle",
+          "cx": 455,
+          "cy": 270,
+          "r": 5,
+          "tone": "ink",
+          "fill": true
+        },
+        {
+          "type": "text",
+          "x": 245,
+          "y": 330,
+          "text": "v₀",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 455,
+          "y": 330,
+          "text": "v₁",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "math_context": "使用整数系数的单纯同调。每条基边固定方向：e₀₁=[v₀,v₁]，e₁₂=[v₁,v₂]，e₀₂=[v₀,v₂]；反向边等于负边，∂[vᵢ,vⱼ]=vⱼ−vᵢ。若有2单形t=[v₀,v₁,v₂]，∂t=e₁₂−e₀₂+e₀₁。只有三条边的三角形圆周没有2单形；填充的三角形含t。Zₙ=ker∂ₙ，Bₙ=im∂ₙ₊₁，Hₙ=Zₙ/Bₙ。链相等、同调类相等及同伦是不同关系；ℤ/mℤ仅作商群的代数类比。",
+    "source_notes": [
+      {
+        "title": "Allen Hatcher — Algebraic Topology",
+        "url": "https://pi.math.cornell.edu/~hatcher/AT/ATch2.pdf",
+        "locator": "§2.1，印刷页105—106：整数单纯链、边界公式、Lemma 2.1（∂²=0）与循环模边界；本软件的题目是据这些定义编写的练习，并非教材原题。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "chains_as_formal_sums_guided",
+        "node_id": "chains_as_formal_sums",
+        "kind": "guided",
+        "format": "open",
+        "question": "补步骤：固定不同定向边e、f，c=2e−3f，d=−e+4f。c+d=(2+___)e+(−3+___)f=___。说明为什么不用几何支集来相加。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "链的坐标就是基边的整数系数。",
+          "只合并同一个基边的系数。",
+          "系数分别为2−1与−3+4。"
+        ],
+        "reference_answer": "三空依次为−1、4、e+f。c+d=e+f，因为链相加按基边逐项合并整数系数；支集相同仍可能具有不同重数或方向。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "逐项相加整数系数"
+          },
+          {
+            "id": "reason_2",
+            "description": "解释支集不能替代链数据"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "chains_as_formal_sums_independent",
+        "node_id": "chains_as_formal_sums",
+        "kind": "independent",
+        "format": "open",
+        "question": "固定不同定向边e、f。求(−2e+f)−(e−3f)。若改用e′=−e为基，如何写同一个结果？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "减去一个链要减去它的每个系数。",
+          "先在基e、f下求结果。",
+          "把e替换成−e′；链本身不因改用基方向而变化。"
+        ],
+        "reference_answer": "结果为−3e+4f=3e′+4f。第一次减法逐项给出−2−1=−3，1−(−3)=4；改用反向基边改变坐标符号，不改变链。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "正确计算链的减法"
+          },
+          {
+            "id": "reason_2",
+            "description": "反向基边与负号对应"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "boundary_operator": {
+    "node_id": "boundary_operator",
+    "title": "边界算子记录带符号的边界",
+    "definition": "整数系数单纯链的边界算子 ∂_n: C_n → C_{n−1} 按线性方式延伸。对定向单形，∂[v₀,…,v_n] = Σᵢ (−1)ⁱ[v₀,…,省略 vᵢ,…,v_n]。普通同调中取 ∂₀ = 0。",
+    "intuition": "边界要记录方向和重数。两块相邻且方向协调的面，其共享边在边界中符号相反，会抵消；剩下的是外侧边界。这比“取几何外轮廓”更准确。",
+    "example": "对边 e = [v₀,v₁]，∂e = [v₁] − [v₀]。对三角形 t = [v₀,v₁,v₂]，∂t = [v₁,v₂] − [v₀,v₂] + [v₀,v₁]；其中 −[v₀,v₂] 可以理解为朝向 v₂ 到 v₀ 的边。",
+    "proof_idea": "定义每个定向单形的各面符号，再用线性性处理任意链。要检查公式是否反映几何方向，可以沿三角形周边走一圈：v₀ → v₁ → v₂ → v₀，得到的三个有向边正是公式中的三项。",
+    "exercise": {
+      "question": "e = [v₀,v₁]。利用线性性，∂(2e) 是什么？",
+      "options": [
+        "[v₁] + [v₀]",
+        "[v₁] − [v₀]",
+        "0",
+        "2[v₁] − 2[v₀]"
+      ],
+      "correct_index": 3,
+      "explanation": "边界算子是群同态，∂(2e) = 2∂e = 2([v₁] − [v₀])。链的重数也必须保留在边界中。",
+      "dimension": "application"
+    },
+    "source": "curated_example",
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "在一个用对角线 [v₀,v₂] 剖分的四边形中，四个顶点 v₀,v₁,v₂,v₃ 按逆时针排列。取整数系数，t₁=[v₀,v₁,v₂]、t₂=[v₀,v₂,v₃]。计算 ∂(t₁+t₂)，说明共享边为什么抵消。",
+        "hint": "分别展开两块三角形的三个带符号边；留意 [v₀,v₂] 的系数。",
+        "answer": "∂t₁=[v₁,v₂]−[v₀,v₂]+[v₀,v₁]，∂t₂=[v₂,v₃]−[v₀,v₃]+[v₀,v₂]。相加得到 [v₀,v₁]+[v₁,v₂]+[v₂,v₃]−[v₀,v₃]，即逆时针外周。两面的方向协调，使共享边 [v₀,v₂] 分别带 −1 与 +1 系数。"
+      },
+      {
+        "level": "challenge",
+        "question": "保留上题的四边形和整数系数，把第二块面反向，改取 s=[v₀,v₁,v₂]+[v₀,v₃,v₂]。计算 ∂s。为什么共享对角线此时没有抵消，且这不违反边界的线性性？",
+        "hint": "[v₀,v₃,v₂]=−[v₀,v₂,v₃]；边界随面反向而变号。",
+        "answer": "∂s=[v₀,v₁]+[v₁,v₂]−[v₂,v₃]+[v₀,v₃]−2[v₀,v₂]。反向的第二个面让共享对角线也带 −1 系数，所以合计为 −2。线性性始终成立；内部边抵消需要两个面协调定向，不能仅凭它们在几何上相邻就断言抵消。"
+      }
+    ],
+    "illustration": {
+      "title": "三角形的带符号边界",
+      "caption": "t=[v₀,v₁,v₂]，整数系数；三个箭头沿 v₀→v₁→v₂→v₀。eᵢⱼ=[vᵢ,vⱼ] 以 i<j 定向，因此向下左的边对应 −e₀₂。绿色区域表示空间中的二维单形，长度与面积不影响边界公式。",
+      "alt": "填满的三角形 t，三个顶点依次为左下 v₀、右下 v₁、上方 v₂。蓝色周边沿逆时针方向，系数为 e₀₁+e₁₂−e₀₂；右侧写出边界关系。",
+      "elements": [
+        {
+          "type": "polygon",
+          "points": [
+            [
+              100,
+              255
+            ],
+            [
+              290,
+              255
+            ],
+            [
+              195,
+              95
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 255,
+          "x2": 290,
+          "y2": 255,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 290,
+          "y1": 255,
+          "x2": 195,
+          "y2": 95,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 195,
+          "y1": 95,
+          "x2": 100,
+          "y2": 255,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "text",
+          "x": 84,
+          "y": 283,
+          "text": "v₀",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 306,
+          "y": 283,
+          "text": "v₁",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 195,
+          "y": 75,
+          "text": "v₂",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 195,
+          "y": 170,
+          "text": "t",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 195,
+          "y": 307,
+          "text": "+[v₀,v₁]",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 310,
+          "y": 175,
+          "text": "+[v₁,v₂]",
+          "tone": "blue",
+          "anchor": "start"
+        },
+        {
+          "type": "text",
+          "x": 55,
+          "y": 175,
+          "text": "−[v₀,v₂]",
+          "tone": "blue",
+          "anchor": "start"
+        },
+        {
+          "type": "text",
+          "x": 490,
+          "y": 95,
+          "text": "∂t",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 490,
+          "y": 160,
+          "text": "= e₀₁ + e₁₂",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 490,
+          "y": 205,
+          "text": "− e₀₂",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 330,
+          "y1": 250,
+          "x2": 415,
+          "y2": 250,
+          "tone": "muted",
+          "arrow": true,
+          "dashed": false
+        }
+      ]
+    },
+    "math_context": "使用整数系数的单纯同调。每条基边固定方向：e₀₁=[v₀,v₁]，e₁₂=[v₁,v₂]，e₀₂=[v₀,v₂]；反向边等于负边，∂[vᵢ,vⱼ]=vⱼ−vᵢ。若有2单形t=[v₀,v₁,v₂]，∂t=e₁₂−e₀₂+e₀₁。只有三条边的三角形圆周没有2单形；填充的三角形含t。Zₙ=ker∂ₙ，Bₙ=im∂ₙ₊₁，Hₙ=Zₙ/Bₙ。链相等、同调类相等及同伦是不同关系；ℤ/mℤ仅作商群的代数类比。",
+    "source_notes": [
+      {
+        "title": "Allen Hatcher — Algebraic Topology",
+        "url": "https://pi.math.cornell.edu/~hatcher/AT/ATch2.pdf",
+        "locator": "§2.1，印刷页105—106：整数单纯链、边界公式、Lemma 2.1（∂²=0）与循环模边界；本软件的题目是据这些定义编写的练习，并非教材原题。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "boundary_operator_guided",
+        "node_id": "boundary_operator",
+        "kind": "guided",
+        "format": "open",
+        "question": "补步骤：∂(2e₀₁−e₁₂)=2(v₁−v₀)−(v₂−___)=___。指出每个顶点的系数。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "边的边界是终点减起点。",
+          "e₁₂的起点是v₁。",
+          "分配负号并合并v₀、v₁、v₂。"
+        ],
+        "reference_answer": "第一空是v₁，结果为−2v₀+3v₁−v₂；三个顶点系数依次为−2、3、−1。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "正确使用基边方向"
+          },
+          {
+            "id": "reason_2",
+            "description": "用线性性合并顶点项"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "boundary_operator_independent",
+        "node_id": "boundary_operator",
+        "kind": "independent",
+        "format": "open",
+        "question": "令x=ae₀₁+be₁₂+ce₀₂，其中a,b,c∈ℤ。计算∂x，并求∂x=0的条件。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "分别计算三条基边的边界。",
+          "按v₀、v₁、v₂收集系数。",
+          "三个顶点是C₀的基，零链要求每个系数为0。"
+        ],
+        "reference_answer": "∂x=(−a−c)v₀+(a−b)v₁+(b+c)v₂。为零等价于a=b=−c；三个方程中的一个可由其余两个得到。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "正确求三个顶点的系数"
+          },
+          {
+            "id": "reason_2",
+            "description": "根据自由基推出循环条件"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "cycles_and_boundaries": {
+    "node_id": "cycles_and_boundaries",
+    "title": "闭合与能够填充是两个条件",
+    "definition": "在整数系数链复形中，n 维循环是满足 ∂_n z = 0 的链，组成 Z_n = ker ∂_n。n 维边界链是形如 ∂_{n+1}c 的链，组成 B_n = im ∂_{n+1}。这里的填充 c 必须是当前空间里的链。",
+    "intuition": "循环没有残余边界；边界链还要求它来自空间中一个高维链的边界。能在纸上画一个填充区域，不能说明这个区域属于所研究的空间。循环也可以是多个闭合部分的线性组合，不限于一条简单闭曲线。",
+    "example": "把三条边组成的圆周 X 看作一维单纯复形，z = [v₀,v₁] + [v₁,v₂] − [v₀,v₂] 是循环。X 中没有二维单形，所以这个非零 z 不是边界。若加入三角形面 t 得到填满的圆盘，则 z = ∂t，成为该空间中的边界。",
+    "proof_idea": "先算 ∂z，各顶点项两两抵消，因此 z 是循环。再查看空间里有哪些二维链：圆周复形的 C₂ = 0，不可能产生非零边界；填入三角形后，t 提供了所需的二维链。这直接展示了两个条件的差别。",
+    "exercise": {
+      "question": "在只有三条边、没有三角形面的圆周单纯复形中，上例的非零 z 是什么？",
+      "options": [
+        "循环，但不是边界链",
+        "边界链，但不是循环",
+        "既是循环，也是边界链",
+        "既不是循环，也不是边界链"
+      ],
+      "correct_index": 0,
+      "explanation": "∂z = 0，所以它是循环；这个复形中 C₂ = 0，B₁ = im ∂₂ = 0，所以非零 z 不是边界。填充必须存在于当前空间。",
+      "dimension": "intuition"
+    },
+    "source": "curated_example",
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "使用整数系数，X 只有三角形的三条边和三个顶点，没有二维面。令 z=[v₀,v₁]+[v₁,v₂]−[v₀,v₂]。逐项计算 ∂z，再判断 2z 是否为循环、是否为边界。",
+        "hint": "循环要看 ∂；边界要看当前复形的 C₂，而不是纸面内的区域。",
+        "answer": "∂z=([v₁]−[v₀])+([v₂]−[v₁])−([v₂]−[v₀])=0，所以 ∂(2z)=0，2z 是循环。由于 X 的 C₂=0，B₁=0；三条边是自由基，2z≠0，所以 2z 不是边界。"
+      },
+      {
+        "level": "challenge",
+        "question": "仍取整数系数，e₀₁、e₁₂、e₀₂ 依增加下标定向。对 c=a e₀₁+b e₁₂+d e₀₂ 求 ∂c=0 的条件。在只有三边的 X 中，以及加入面 t=[v₀,v₁,v₂] 得到的 Y 中，各有哪些循环是边界？",
+        "hint": "按 v₀、v₁、v₂ 收集边界的系数，再比较两个空间可用的二维链。",
+        "answer": "∂c=−(a+d)[v₀]+(a−b)[v₁]+(b+d)[v₂]，所以循环条件是 a=b、d=−a，即 c=a z。X 的 C₂=0，只有零循环是边界。Y 中 ∂t=z，任意 a z=∂(a t)，因此所有一维循环都是边界。这里用的是这两个具体单纯复形，不能把“所有循环可填充”推广到任意空间。"
+      }
+    ],
+    "illustration": {
+      "title": "同一周边，在两个空间中结论不同",
+      "caption": "整数系数；左边是三条边组成的圆周复形 X（与 S¹ 同胚），内部空白不属于 X。右边加入二维面 t，得到填满圆盘 Y。两侧周边 z 都逆时针且每边重数为一；z 在 X 中不是边界，在 Y 中等于 ∂t。",
+      "alt": "左侧只有三角形轮廓 X，右侧同样的轮廓含绿色三角形面 t，表示圆盘 Y。两个蓝色周边都逆时针；左侧 z 不属于 B₁，右侧 z=∂t。三角形外观只是圆周与圆盘的单纯模型。",
+      "elements": [
+        {
+          "type": "line",
+          "x1": 85,
+          "y1": 255,
+          "x2": 255,
+          "y2": 255,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 255,
+          "y1": 255,
+          "x2": 170,
+          "y2": 105,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 170,
+          "y1": 105,
+          "x2": 85,
+          "y2": 255,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "text",
+          "x": 69,
+          "y": 283,
+          "text": "v₀",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 271,
+          "y": 283,
+          "text": "v₁",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 170,
+          "y": 85,
+          "text": "v₂",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              385,
+              255
+            ],
+            [
+              555,
+              255
+            ],
+            [
+              470,
+              105
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 385,
+          "y1": 255,
+          "x2": 555,
+          "y2": 255,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 555,
+          "y1": 255,
+          "x2": 470,
+          "y2": 105,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 470,
+          "y1": 105,
+          "x2": 385,
+          "y2": 255,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "text",
+          "x": 369,
+          "y": 283,
+          "text": "v₀",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 571,
+          "y": 283,
+          "text": "v₁",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 470,
+          "y": 85,
+          "text": "v₂",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 170,
+          "y": 40,
+          "text": "圆周 X",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 470,
+          "y": 40,
+          "text": "填满圆盘 Y",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 292,
+          "y1": 180,
+          "x2": 348,
+          "y2": 180,
+          "tone": "muted",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "text",
+          "x": 170,
+          "y": 326,
+          "text": "z ∉ B₁",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 470,
+          "y": 326,
+          "text": "z = ∂t",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 470,
+          "y": 180,
+          "text": "t",
+          "tone": "green",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "math_context": "使用整数系数的单纯同调。每条基边固定方向：e₀₁=[v₀,v₁]，e₁₂=[v₁,v₂]，e₀₂=[v₀,v₂]；反向边等于负边，∂[vᵢ,vⱼ]=vⱼ−vᵢ。若有2单形t=[v₀,v₁,v₂]，∂t=e₁₂−e₀₂+e₀₁。只有三条边的三角形圆周没有2单形；填充的三角形含t。Zₙ=ker∂ₙ，Bₙ=im∂ₙ₊₁，Hₙ=Zₙ/Bₙ。链相等、同调类相等及同伦是不同关系；ℤ/mℤ仅作商群的代数类比。",
+    "source_notes": [
+      {
+        "title": "Allen Hatcher — Algebraic Topology",
+        "url": "https://pi.math.cornell.edu/~hatcher/AT/ATch2.pdf",
+        "locator": "§2.1，印刷页105—106：整数单纯链、边界公式、Lemma 2.1（∂²=0）与循环模边界；本软件的题目是据这些定义编写的练习，并非教材原题。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "cycles_and_boundaries_guided",
+        "node_id": "cycles_and_boundaries",
+        "kind": "guided",
+        "format": "open",
+        "question": "只有三条边的三角形圆周中，z=e₀₁+e₁₂−e₀₂。补步骤：∂z=(v₁−v₀)+(v₂−v₁)−(v₂−v₀)=___；C₂=___，故z是否为边界？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先消去相反的顶点项。",
+          "所在空间没有2单形。",
+          "循环由∂z=0判断；边界需要来自该空间的2链。"
+        ],
+        "reference_answer": "两空都是0。z是非零循环，但C₂=0使B₁=im∂₂=0，所以z不是边界。画面上可在平面中填充，并不表示给定空间含这个填充。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "检查∂z=0"
+          },
+          {
+            "id": "reason_2",
+            "description": "从给定空间的C₂判断是否为边界"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "cycles_and_boundaries_independent",
+        "node_id": "cycles_and_boundaries",
+        "kind": "independent",
+        "format": "open",
+        "question": "在填充三角形中，w=e₀₁+e₁₂是不是循环？能否是某个2链的边界？请同时给出两问的理由。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先计算∂w。",
+          "w的起点与终点分别是v₀、v₂。",
+          "每个边界都满足边界的边界为0。"
+        ],
+        "reference_answer": "∂w=v₂−v₀≠0，所以w不是循环。由于∂²=0，每个2链的边界都为循环，因此w也不是边界。存在填充面并不使任意1链都成为边界。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "正确计算∂w并判定循环"
+          },
+          {
+            "id": "reason_2",
+            "description": "由∂²=0排除w是边界"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "boundary_squared_zero": {
+    "node_id": "boundary_squared_zero",
+    "title": "为什么边界的边界等于零",
+    "definition": "边界算子满足 ∂_{n−1} ∘ ∂_n = 0，通常简写成 ∂² = 0。它表示对任意链 c，∂(∂c) 是零链；并不表示 ∂c 本身为零。",
+    "intuition": "一个面带有闭合的周边。再取周边各边的端点，每个顶点同时作为一条边的终点和另一条边的起点，符号相反而抵消。高维情形中，每个余维二的面也会由两种取边界的顺序出现，符号相反。",
+    "example": "t = [v₀,v₁,v₂]。对 ∂t = [v₁,v₂] − [v₀,v₂] + [v₀,v₁] 再取边界，得到 ([v₂]−[v₁]) − ([v₂]−[v₀]) + ([v₁]−[v₀]) = 0。虽然 ∂t 通常不为零，∂²t 一定为零。",
+    "proof_idea": "展开交替面公式。每次连续删去两个不同顶点；同一个余维二的面来自“先删第一个、再删第二个”和相反顺序。因为前一次删除改变后续编号，两项符号相反。所有项成对抵消；线性性把结论延伸到任意链。",
+    "exercise": {
+      "question": "若 t 是定向三角形面，∂²t = 0 能推出下列哪一项？",
+      "options": [
+        "t 是零链",
+        "∂t 是零链",
+        "∂t 是一个循环",
+        "所有循环都是边界"
+      ],
+      "correct_index": 2,
+      "explanation": "循环的定义是边界为零。∂(∂t) = 0 正好说明 ∂t 是循环，但不能说明 t 或 ∂t 本身是零链。",
+      "dimension": "definition"
+    },
+    "source": "curated_example",
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "取整数系数，t=[v₀,v₁,v₂]。计算 ∂²(3t)，明确写出各顶点的系数；这个结果是否说明 ∂(3t)=0？",
+        "hint": "先用 ∂(3t)=3∂t，再对三条边取终点减起点。",
+        "answer": "∂²(3t)=3(([v₂]−[v₁])−([v₂]−[v₀])+([v₁]−[v₀]))=0。v₀ 的系数是 3−3，v₁ 是 −3+3，v₂ 是 3−3。它不说明 ∂(3t)=0；在含这个三角形的单纯复形中，三条不同边是自由基，∂(3t)=3e₁₂−3e₀₂+3e₀₁ 非零，但它是循环。"
+      },
+      {
+        "level": "challenge",
+        "question": "对整数系数定向四面体 T=[v₀,v₁,v₂,v₃]，∂T=[v₁,v₂,v₃]−[v₀,v₂,v₃]+[v₀,v₁,v₃]−[v₀,v₁,v₂]。在 ∂²T 中追踪边 [v₂,v₃] 的两次出现，并解释为何每条边也会抵消。",
+        "hint": "包含 [v₂,v₃] 的两个面来自删去 v₀ 或 v₁；再次删除时顶点编号会变化。",
+        "answer": "[v₂,v₃] 在 ∂[v₁,v₂,v₃] 中带 +1，在 −∂[v₀,v₂,v₃] 中带 −1，故抵消。一般连续删去原编号 i<j 的两个顶点，先删 i 再删 j 的符号为 (−1)ⁱ(−1)ʲ⁻¹，反序为 (−1)ʲ(−1)ⁱ，互为相反数。四面体的每条边对应同一对被删顶点，因此全部成对抵消，∂²T=0。"
+      }
+    ],
+    "illustration": {
+      "title": "再取一次边界：顶点项成对抵消",
+      "caption": "整数系数；左图箭头表示 ∂t 的逆时针周边，各边重数为一。每条边的终点贡献 +1、起点贡献 −1。右侧按顶点收集系数，和均为零；这是链的代数抵消，不表示三角形周边 ∂t 本身为零。",
+      "alt": "左侧为带逆时针周边的填满三角形 t。右侧 v₀、v₁、v₂ 各有一正一负整数系数，三个和都为零，得到 ∂²t=0。",
+      "elements": [
+        {
+          "type": "polygon",
+          "points": [
+            [
+              80,
+              255
+            ],
+            [
+              270,
+              255
+            ],
+            [
+              175,
+              95
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 80,
+          "y1": 255,
+          "x2": 270,
+          "y2": 255,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 270,
+          "y1": 255,
+          "x2": 175,
+          "y2": 95,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 175,
+          "y1": 95,
+          "x2": 80,
+          "y2": 255,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "text",
+          "x": 64,
+          "y": 283,
+          "text": "v₀",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 286,
+          "y": 283,
+          "text": "v₁",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 175,
+          "y": 75,
+          "text": "v₂",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 175,
+          "y": 177,
+          "text": "∂t",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 315,
+          "y1": 175,
+          "x2": 380,
+          "y2": 175,
+          "tone": "muted",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "text",
+          "x": 495,
+          "y": 100,
+          "text": "v₀: +1 −1",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 495,
+          "y": 160,
+          "text": "v₁: −1 +1",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 495,
+          "y": 220,
+          "text": "v₂: +1 −1",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 495,
+          "y": 290,
+          "text": "∂²t = 0",
+          "tone": "green",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "math_context": "使用整数系数的单纯同调。每条基边固定方向：e₀₁=[v₀,v₁]，e₁₂=[v₁,v₂]，e₀₂=[v₀,v₂]；反向边等于负边，∂[vᵢ,vⱼ]=vⱼ−vᵢ。若有2单形t=[v₀,v₁,v₂]，∂t=e₁₂−e₀₂+e₀₁。只有三条边的三角形圆周没有2单形；填充的三角形含t。Zₙ=ker∂ₙ，Bₙ=im∂ₙ₊₁，Hₙ=Zₙ/Bₙ。链相等、同调类相等及同伦是不同关系；ℤ/mℤ仅作商群的代数类比。",
+    "source_notes": [
+      {
+        "title": "Allen Hatcher — Algebraic Topology",
+        "url": "https://pi.math.cornell.edu/~hatcher/AT/ATch2.pdf",
+        "locator": "§2.1，印刷页105—106：整数单纯链、边界公式、Lemma 2.1（∂²=0）与循环模边界；本软件的题目是据这些定义编写的练习，并非教材原题。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "boundary_squared_zero_guided",
+        "node_id": "boundary_squared_zero",
+        "kind": "guided",
+        "format": "open",
+        "question": "补证明：∂t=e₁₂−e₀₂+e₀₁，所以∂²t=(v₂−v₁)−(v₂−___)+(v₁−___)=0。补空并指出抵消的原因。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "保留三条边各自选定方向。",
+          "e₀₂和e₀₁的起点均是v₀。",
+          "每个顶点出现两次，系数互为相反数。"
+        ],
+        "reference_answer": "两空均为v₀；v₂的系数1−1=0，v₁的系数−1+1=0，v₀的系数1−1=0。方向约定决定的符号使所有顶点项抵消。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "使用一致的方向与边界公式"
+          },
+          {
+            "id": "reason_2",
+            "description": "逐个解释顶点项抵消"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "boundary_squared_zero_independent",
+        "node_id": "boundary_squared_zero",
+        "kind": "independent",
+        "format": "open",
+        "question": "已知每个基2单形σ均满足∂²σ=0。解释为何任意整数2链c=∑ᵢaᵢσᵢ都满足∂²c=0。这里有用到c必须是循环吗？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "边界算子是群同态。",
+          "将两次∂移入有限和。",
+          "每一项aᵢ∂²σᵢ都为0。"
+        ],
+        "reference_answer": "线性性给∂²c=∑ᵢaᵢ∂²σᵢ=0。没有要求c是循环；∂²=0作用于所有链，不等价于∂c=0。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "应用边界算子的线性性"
+          },
+          {
+            "id": "reason_2",
+            "description": "区分∂²c=0和∂c=0"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "boundaries_inside_cycles": {
+    "node_id": "boundaries_inside_cycles",
+    "title": "边界群为什么包含在循环群中",
+    "definition": "Z_n = ker ∂_n 和 B_n = im ∂_{n+1} 都是 C_n 的子群。由 ∂_n∂_{n+1} = 0 得到 B_n ⊆ Z_n。链群是阿贝尔群，因此 B_n 也是 Z_n 的正规子群，商群 Z_n/B_n 有定义。",
+    "intuition": "“能够填成边界”比“没有边界”要求更强。边界链必须闭合，但闭合链未必有空间内的填充。这个包含关系是取商合法的代数基础，不是说两类链总相等。",
+    "example": "填满的三角形中，周边 z = ∂t 属于 B₁，也因为 ∂z = ∂²t = 0 属于 Z₁。若只有周边组成的圆周复形，则同样的 z 属于 Z₁，但 B₁ = 0；这是包含关系可能为严格包含的例子。",
+    "proof_idea": "任取 b ∈ B_n。按照像的定义，存在 c ∈ C_{n+1} 使 b = ∂_{n+1}c。于是 ∂_n b = ∂_n∂_{n+1}c = 0，所以 b ∈ Z_n。核与像是子群，则来自边界算子的同态性质。",
+    "exercise": {
+      "question": "要证明任意 b ∈ B_n 也在 Z_n 中，关键的计算是哪一个？",
+      "options": [
+        "从 b ∈ B_n 直接断言 b = 0",
+        "写 b = ∂c，再算 ∂b = ∂²c = 0",
+        "给每个循环选择一个空间外的填充",
+        "证明所有链的边界都非零"
+      ],
+      "correct_index": 1,
+      "explanation": "b 是边界意味着 b = ∂c，而 ∂² = 0 给出 ∂b = 0，正好满足循环的定义。边界链本身通常并非零链。",
+      "dimension": "application"
+    },
+    "source": "curated_example",
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "考虑整数链复形 C₂=ℤ、C₁=ℤ²、C₀=ℤ，∂₂(k)=(k,k)，∂₁(a,b)=a−b。求 B₁ 与 Z₁，验证 B₁⊆Z₁，并判断这一次是否严格包含。",
+        "hint": "先写像中的所有元素，再解 a−b=0。",
+        "answer": "B₁={(k,k):k∈ℤ}；Z₁={(a,a):a∈ℤ}，所以 B₁=Z₁，包含不是严格的。并且 ∂₁∂₂(k)=k−k=0，符合链复形条件；H₁=Z₁/B₁=0。B₁⊆Z₁ 允许相等，并不要求有非边界循环。"
+      },
+      {
+        "level": "challenge",
+        "question": "保留上题的整数群和 ∂₁(a,b)=a−b，却把 ∂₂ 改为 ∂₂(k)=(k,0)。验证这不是链复形，并解释为什么不能把 im ∂₂ 直接作为 ker ∂₁ 的子群来取同调商。",
+        "hint": "检查 ∂₁∂₂(1)，并查看 (1,0) 是否属于 ker ∂₁。",
+        "answer": "∂₁∂₂(k)=k，特别在 k=1 时非零，所以不满足 ∂²=0。元素 (1,0) 在 im ∂₂ 中，但 ∂₁(1,0)=1，因此不在 ker ∂₁ 中。像没有包含在核里，ker ∂₁ / im ∂₂ 不是这里合法的子群商；这说明 ∂²=0 是同调定义的必要结构条件。"
+      }
+    ],
+    "illustration": {
+      "title": "边界群包含在循环群中",
+      "caption": "整数系数链复形满足 ∂²=0，因此 Bₙ⊆Zₙ⊆Cₙ。三层圆仅为集合包含关系的结构示意，圆的面积不代表群的大小、维数或拓扑形状；有些空间中 Bₙ=Zₙ。",
+      "alt": "三层相套的圆由外到内标为链群 Cₙ、循环群 Zₙ、边界群 Bₙ，表达包含关系 Bₙ⊆Zₙ⊆Cₙ；层间空隙仅是示意，不能据此断言包含严格。",
+      "elements": [
+        {
+          "type": "circle",
+          "cx": 320,
+          "cy": 180,
+          "r": 148,
+          "tone": "muted",
+          "fill": false
+        },
+        {
+          "type": "circle",
+          "cx": 320,
+          "cy": 190,
+          "r": 105,
+          "tone": "blue",
+          "fill": false
+        },
+        {
+          "type": "circle",
+          "cx": 320,
+          "cy": 205,
+          "r": 55,
+          "tone": "green",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 67,
+          "text": "Cₙ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 122,
+          "text": "Zₙ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 213,
+          "text": "Bₙ",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "math_context": "使用整数系数的单纯同调。每条基边固定方向：e₀₁=[v₀,v₁]，e₁₂=[v₁,v₂]，e₀₂=[v₀,v₂]；反向边等于负边，∂[vᵢ,vⱼ]=vⱼ−vᵢ。若有2单形t=[v₀,v₁,v₂]，∂t=e₁₂−e₀₂+e₀₁。只有三条边的三角形圆周没有2单形；填充的三角形含t。Zₙ=ker∂ₙ，Bₙ=im∂ₙ₊₁，Hₙ=Zₙ/Bₙ。链相等、同调类相等及同伦是不同关系；ℤ/mℤ仅作商群的代数类比。",
+    "source_notes": [
+      {
+        "title": "Allen Hatcher — Algebraic Topology",
+        "url": "https://pi.math.cornell.edu/~hatcher/AT/ATch2.pdf",
+        "locator": "§2.1，印刷页105—106：整数单纯链、边界公式、Lemma 2.1（∂²=0）与循环模边界；本软件的题目是据这些定义编写的练习，并非教材原题。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "boundaries_inside_cycles_guided",
+        "node_id": "boundaries_inside_cycles",
+        "kind": "guided",
+        "format": "open",
+        "question": "补证明：若z=∂c，则∂z=∂(___)=___。所以Bₙ⊆Zₙ。说明两次∂的维度分别是什么。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "用给定的z=∂c替换z。",
+          "第一次从n+1维链到n维链。",
+          "第二次从n维链到n−1维链，复合为0。"
+        ],
+        "reference_answer": "两空为∂c和0；明确地z=∂ₙ₊₁c，∂ₙz=∂ₙ∂ₙ₊₁c=0。因此每个边界都是循环。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "从边界表达式推出循环条件"
+          },
+          {
+            "id": "reason_2",
+            "description": "正确区分边界算子的维度"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "boundaries_inside_cycles_independent",
+        "node_id": "boundaries_inside_cycles",
+        "kind": "independent",
+        "format": "open",
+        "question": "“∂z=0，所以z必为某个更高维链的边界”是否成立？用只有三条边的三角形圆周给出反例。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "包含关系不能未经证明反向使用。",
+          "考虑z=e₀₁+e₁₂−e₀₂。",
+          "它的边界为0，但该空间C₂=0。"
+        ],
+        "reference_answer": "不成立。三角形圆周中z=e₀₁+e₁₂−e₀₂是非零1链且∂z=0；C₂=0使B₁=0，故z不是边界。这反驳Z₁⊆B₁，未反驳B₁⊆Z₁。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "明确被反驳的包含方向"
+          },
+          {
+            "id": "reason_2",
+            "description": "说明反例循环非零且空间无2链"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "quotient_group_meaning": {
+    "node_id": "quotient_group_meaning",
+    "title": "取商把相差一个子群元素的对象归为同类",
+    "definition": "对阿贝尔群 A 和子群 B，规定 a ∼ a′ 当且仅当 a − a′ ∈ B。a 的等价类是陪集 a + B = {a + b : b ∈ B}。商群 A/B 以这些陪集为元素，用 (a+B)+(a′+B) = (a+a′)+B 定义加法。",
+    "intuition": "取商是设定一种忽略差别的规则：B 中的变化不影响结果。元素没有从原群中被删除，而是成为等价类的代表；B 中所有元素都代表商群的零元素 B。这里讨论阿贝尔群；一般群取商还需要子群正规。",
+    "example": "取 A = ℤ、B = 3ℤ。1 和 4 的差是 −3 ∈ 3ℤ，所以 1+3ℤ = 4+3ℤ；1 和 2 不属于同一个陪集。3ℤ、1+3ℤ、2+3ℤ 是三个等价类。",
+    "proof_idea": "B 含零、对加法和取负封闭，因此差属于 B 的关系具有自反、对称和传递性。换用代表 a+b、a′+b′ 后，两者的和只改变 b+b′ ∈ B，所以商群加法不依赖代表的选取。",
+    "exercise": {
+      "question": "在 ℤ/3ℤ 中，哪两个整数代表同一个商群元素？",
+      "options": [
+        "2 和 8",
+        "2 和 7",
+        "1 和 3",
+        "0 和 1"
+      ],
+      "correct_index": 0,
+      "explanation": "2−8 = −6 是 3 的倍数，因此 2+3ℤ = 8+3ℤ。其他各对整数的差都不在 3ℤ 中。",
+      "dimension": "application"
+    },
+    "source": "curated_example",
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "在加法商群 ℤ/3ℤ 中，判断 −1 与 2 是否代表同一元素，并计算 (2+3ℤ)+(2+3ℤ)。请用整数的差与陪集解释。",
+        "hint": "同类要求两整数的差是 3 的倍数；先把代表相加，再换成等价代表。",
+        "answer": "−1−2=−3∈3ℤ，所以 −1+3ℤ=2+3ℤ。加法得到 4+3ℤ；因为 4−1=3∈3ℤ，它等于 1+3ℤ。计算的对象是陪集，代表可以更换，但更换时必须保持差在 3ℤ 中。"
+      },
+      {
+        "level": "challenge",
+        "question": "令 A=ℤ²、B={(k,k):k∈ℤ}，运算均为加法。证明 (a,b)+B 与 (a′,b′)+B 相同当且仅当 a−b=a′−b′，并用这个条件说明 A/B≅ℤ。",
+        "hint": "考虑同态 q(a,b)=a−b：找出它的核，并检查每个整数是否能成为像。",
+        "answer": "两陪集相同等价于 (a−a′,b−b′)=(k,k)，也等价于 a−b=a′−b′。映射 q(a,b)=a−b 是满同态，因为 q(m,0)=m；其核恰为 B。于是 [(a,b)]↦a−b 定义了 A/B 到 ℤ 的良定义双射同态。这是代数商群结论，不是把任意平面几何图形压成一条线的断言。"
+      }
+    ],
+    "illustration": {
+      "title": "按模 3 把整数归为三个陪集",
+      "caption": "加法群 ℤ 对子群 3ℤ 取商。每行只列出一个陪集中的少数整数，省略号表示该类还含无限多个整数；箭头表示商映射，方括号表示陪集。图是代数结构示意，不赋予商群任意几何或拓扑形状。",
+      "alt": "三行整数代表分别是三的倍数、余一与余二的整数；箭头分别指向 ℤ/3ℤ 中的 [0]、[1]、[2]。圆形标签只用于排版，不代表几何对象。",
+      "elements": [
+        {
+          "type": "text",
+          "x": 180,
+          "y": 40,
+          "text": "整数代表",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 515,
+          "y": 40,
+          "text": "ℤ/3ℤ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 180,
+          "y": 113,
+          "text": "… −3, 0, 3 …",
+          "tone": "green",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 330,
+          "y1": 105,
+          "x2": 450,
+          "y2": 105,
+          "tone": "muted",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "circle",
+          "cx": 515,
+          "cy": 105,
+          "r": 36,
+          "tone": "green",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 515,
+          "y": 113,
+          "text": "[0]",
+          "tone": "green",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 180,
+          "y": 203,
+          "text": "… −2, 1, 4 …",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 330,
+          "y1": 195,
+          "x2": 450,
+          "y2": 195,
+          "tone": "muted",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "circle",
+          "cx": 515,
+          "cy": 195,
+          "r": 36,
+          "tone": "blue",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 515,
+          "y": 203,
+          "text": "[1]",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 180,
+          "y": 293,
+          "text": "… −1, 2, 5 …",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 330,
+          "y1": 285,
+          "x2": 450,
+          "y2": 285,
+          "tone": "muted",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "circle",
+          "cx": 515,
+          "cy": 285,
+          "r": 36,
+          "tone": "ink",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 515,
+          "y": 293,
+          "text": "[2]",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "math_context": "使用整数系数的单纯同调。每条基边固定方向：e₀₁=[v₀,v₁]，e₁₂=[v₁,v₂]，e₀₂=[v₀,v₂]；反向边等于负边，∂[vᵢ,vⱼ]=vⱼ−vᵢ。若有2单形t=[v₀,v₁,v₂]，∂t=e₁₂−e₀₂+e₀₁。只有三条边的三角形圆周没有2单形；填充的三角形含t。Zₙ=ker∂ₙ，Bₙ=im∂ₙ₊₁，Hₙ=Zₙ/Bₙ。链相等、同调类相等及同伦是不同关系；ℤ/mℤ仅作商群的代数类比。",
+    "source_notes": [
+      {
+        "title": "Allen Hatcher — Algebraic Topology",
+        "url": "https://pi.math.cornell.edu/~hatcher/AT/ATch2.pdf",
+        "locator": "§2.1，印刷页105—106：整数单纯链、边界公式、Lemma 2.1（∂²=0）与循环模边界；本软件的题目是据这些定义编写的练习，并非教材原题。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "quotient_group_meaning_guided",
+        "node_id": "quotient_group_meaning",
+        "kind": "guided",
+        "format": "open",
+        "question": "补步骤：在ℤ/4ℤ中，2与10同类因为10−2=___∈___；它们的整数值是否相等？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "比较两个代表元的差。",
+          "子群4ℤ包含4的整数倍。",
+          "陪集相等允许代表元不相等。"
+        ],
+        "reference_answer": "两空为8和4ℤ。2+4ℤ=10+4ℤ，但整数2≠10；等价类相等不强迫原对象相等。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "用差属于子群判断同类"
+          },
+          {
+            "id": "reason_2",
+            "description": "区分整数与陪集的相等"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "quotient_group_meaning_independent",
+        "node_id": "quotient_group_meaning",
+        "kind": "independent",
+        "format": "open",
+        "question": "在ℤ/5ℤ中判断−2、3、4中哪些表示同一类。写出差属于5ℤ的证据。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "分别比较两数的差。",
+          "负数也可以属于5ℤ。",
+          "3−(−2)=5，而4−3=1、4−(−2)=6。"
+        ],
+        "reference_answer": "−2和3同类，因为差为5∈5ℤ；4不与它们同类，因为1和6都不属于5ℤ。不能仅凭代表元正负或大小判断陪集。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "逐对使用差属于5ℤ的判据"
+          },
+          {
+            "id": "reason_2",
+            "description": "正确处理负代表元"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "cycles_mod_boundaries": {
+    "node_id": "cycles_mod_boundaries",
+    "title": "同调类由“相差一个边界”定义",
+    "definition": "使用整数系数，H_n = Z_n/B_n。两个 n 维循环 z、z′ 代表同一同调类，当且仅当 z−z′ = ∂c，其中 c 是当前空间里的 (n+1) 维链。循环 z 的同调类记作 [z]；[z] = 0 当且仅当 z 本身是一个边界。",
+    "intuition": "添加或减去一个边界只改变循环的代表，不改变同调类。某些曲线能通过一个环带联系起来，这是“相差一个边界”的几何图像；一般情况下仍以链的等式为准，而非只判断是否绕着同一个可见的洞。",
+    "example": "在经过三角剖分的平面圆环中，令 z_out、z_in 分别为外圈、内圈的逆时针循环。把环带各三角形一致定向后相加成二维链 c，内部边抵消，∂c = z_out−z_in。因此两圈同调。它们各自不需要是这个圆环中的边界。",
+    "proof_idea": "商群中 z+B_n = z′+B_n 当且仅当 z−z′ ∈ B_n。再用 B_n = im ∂_{n+1}，把属于 B_n 改写为存在 c 使 z−z′ = ∂c。令 z′ = 0，就得到零同调类的判别。",
+    "exercise": {
+      "question": "已知 z、z′ 都是循环，且 z−z′ = ∂c。能够直接得出什么？",
+      "options": [
+        "z 与 z′ 必须是同一个链",
+        "z 和 z′ 都一定是边界",
+        "z 和 z′ 都一定不是边界",
+        "[z] = [z′]，但未必等于零类"
+      ],
+      "correct_index": 3,
+      "explanation": "差是边界说明两个陪集相同。要判断这个共同同调类是否为零，还需判断 z（或 z′）本身是不是边界，不能只由它们的差来决定。",
+      "dimension": "intuition"
+    },
+    "source": "curated_example",
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "在三角剖分的平面圆环 A 中使用整数系数。外圈 z_out、内圈 z_in 都逆时针，且环带链 c 满足 ∂c=z_out−z_in。求 [z_out+2z_in] 用 [z_in] 表示的结果；是否能仅凭该边界等式推出 [z_in]=0？",
+        "hint": "商群把 ∂c 视为零，但没有把每个代表分别设为零。",
+        "answer": "由 [∂c]=0 得 [z_out]=[z_in]，所以 [z_out+2z_in]=3[z_in]。等式本身不能推出 [z_in]=0。在这个圆环中 H₁(A;ℤ)≅ℤ，逆时针内圈生成无限循环群，因此该类非零；环带填充的是两圈的差，而不是内圈单独。"
+      },
+      {
+        "level": "challenge",
+        "question": "仍在整数系数圆环 A 中，令 w_in=−z_in 改为顺时针内圈，而 z_out 保持逆时针。把 ∂c 写成 z_out 与 w_in 的式子，判断 [z_out] 与 [w_in] 是否相等，并解释方向为何重要。已知 [z_in] 是 H₁(A;ℤ)≅ℤ 的生成元。",
+        "hint": "代入 z_in=−w_in；在无限循环群中生成元与其负元不同。",
+        "answer": "∂c=z_out+w_in，所以 [z_out]=−[w_in]。二者不相等：若相等，则 2[z_in]=0，与 [z_in] 的无限阶矛盾。虽然两条曲线都围绕圆环的空缺，方向让同调类变号；同调必须比较带符号的链，不能只比较可见支集。"
+      }
+    ],
+    "illustration": {
+      "title": "圆环：填充两圈的差",
+      "caption": "整数系数；方形环带与平面圆环同胚，绿色区域示意一致定向的二维链 c，未完整画出三角剖分。外圈与内圈箭头都逆时针，各重数为一；但 ∂c 诱导的内边界方向为顺时针，故 ∂c=z_out−z_in。中央空白不属于空间。",
+      "alt": "绿色方形环带包围空白中心；外圈 z_out 和内圈 z_in 的箭头均逆时针、重数一。链 c 的边界是外圈减内圈，表示两圈同调，并非任一圈单独被填满。",
+      "elements": [
+        {
+          "type": "polygon",
+          "points": [
+            [
+              160,
+              280
+            ],
+            [
+              400,
+              280
+            ],
+            [
+              335,
+              215
+            ],
+            [
+              225,
+              215
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              400,
+              280
+            ],
+            [
+              400,
+              70
+            ],
+            [
+              335,
+              135
+            ],
+            [
+              335,
+              215
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              400,
+              70
+            ],
+            [
+              160,
+              70
+            ],
+            [
+              225,
+              135
+            ],
+            [
+              335,
+              135
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              160,
+              70
+            ],
+            [
+              160,
+              280
+            ],
+            [
+              225,
+              215
+            ],
+            [
+              225,
+              135
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 160,
+          "y1": 280,
+          "x2": 400,
+          "y2": 280,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 400,
+          "y1": 280,
+          "x2": 400,
+          "y2": 70,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 400,
+          "y1": 70,
+          "x2": 160,
+          "y2": 70,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 160,
+          "y1": 70,
+          "x2": 160,
+          "y2": 280,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 225,
+          "y1": 215,
+          "x2": 335,
+          "y2": 215,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 335,
+          "y1": 215,
+          "x2": 335,
+          "y2": 135,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 335,
+          "y1": 135,
+          "x2": 225,
+          "y2": 135,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 225,
+          "y1": 135,
+          "x2": 225,
+          "y2": 215,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "text",
+          "x": 280,
+          "y": 38,
+          "text": "z_out",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 280,
+          "y": 185,
+          "text": "z_in",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 180,
+          "y": 183,
+          "text": "c",
+          "tone": "green",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 515,
+          "y": 147,
+          "text": "∂c =",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 515,
+          "y": 195,
+          "text": "z_out − z_in",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "math_context": "使用整数系数的单纯同调。每条基边固定方向：e₀₁=[v₀,v₁]，e₁₂=[v₁,v₂]，e₀₂=[v₀,v₂]；反向边等于负边，∂[vᵢ,vⱼ]=vⱼ−vᵢ。若有2单形t=[v₀,v₁,v₂]，∂t=e₁₂−e₀₂+e₀₁。只有三条边的三角形圆周没有2单形；填充的三角形含t。Zₙ=ker∂ₙ，Bₙ=im∂ₙ₊₁，Hₙ=Zₙ/Bₙ。链相等、同调类相等及同伦是不同关系；ℤ/mℤ仅作商群的代数类比。",
+    "source_notes": [
+      {
+        "title": "Allen Hatcher — Algebraic Topology",
+        "url": "https://pi.math.cornell.edu/~hatcher/AT/ATch2.pdf",
+        "locator": "§2.1，印刷页105—106：整数单纯链、边界公式、Lemma 2.1（∂²=0）与循环模边界；本软件的题目是据这些定义编写的练习，并非教材原题。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "cycles_mod_boundaries_guided",
+        "node_id": "cycles_mod_boundaries",
+        "kind": "guided",
+        "format": "open",
+        "question": "设z₁,z₂是n循环且z₁−z₂=∂c。补理由：[z₁]=[z₂]因为z₁−z₂∈___。这是否能推出链z₁=z₂？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "Bₙ由所有(n+1)链的边界组成。",
+          "陪集相等当且仅当代表元差属于子群。",
+          "子群可能包含非零链。"
+        ],
+        "reference_answer": "第一空为Bₙ。由商群的陪集判据两循环同类，但不能推出链相等；若∂c非零，它们就是不同的链。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "将差是边界转为陪集判据"
+          },
+          {
+            "id": "reason_2",
+            "description": "区分同调类相等与链相等"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "cycles_mod_boundaries_independent",
+        "node_id": "cycles_mod_boundaries",
+        "kind": "independent",
+        "format": "open",
+        "question": "在填充三角形中，z=∂t=e₀₁+e₁₂−e₀₂。判断链2z是否等于零链，以及[2z]是否为零同调类。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先在自由基边中看系数。",
+          "再用边界算子的线性性。",
+          "2z=∂(2t)，但链系数为(2,2,−2)。"
+        ],
+        "reference_answer": "2z≠0链，因为整数基边系数(2,2,−2)非零；但2z=∂(2t)是边界，所以[2z]=0。这里使用整数系数，不能偷偷改成模2系数。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "明确整数系数下链非零"
+          },
+          {
+            "id": "reason_2",
+            "description": "用2z=∂(2t)判同调类为零"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "why_homology_quotient": {
+    "node_id": "why_homology_quotient",
+    "title": "为什么同调要取循环对边界的商",
+    "definition": "整数系数同调群 H_n = ker ∂_n / im ∂_{n+1}，先保留闭合链，再把来自高维链边界的变化视为零。精确规则是 [z] = [z′] ⇔ z−z′ 是边界；取商消去的是边界造成的差别，同时保留剩余循环的加法结构。",
+    "intuition": "只收集循环会把能填充的周边也保留下来；直接删除边界又无法表达等价代表与加法。取商同时让边界成为零类，并把相差边界的循环归为一类。“洞”适合入门图像，不能完整替代同调：方向、绕行重数和同调类之间的代数关系都可能重要。",
+    "example": "圆周的整数系数 H₁ ≅ ℤ：选定方向绕一圈代表生成元 [z]，绕两圈代表 2[z]，反向绕一圈代表 −[z]。三者不同，尽管围着同一个洞。填入圆盘后，周边是空间内二维链的边界，代表零类；圆盘的 H₁ = 0。这说明取商保留的是有代数关系的类，而非给每个可见洞贴一个标签。",
+    "proof_idea": "先由 ∂² = 0 保证 B_n ⊆ Z_n，使取商合法。设 q: Z_n → Z_n/B_n，则 q(b) = 0 对所有边界 b 成立，且 q(z) = q(z′) 正好等价于 z−z′ ∈ B_n。这样既消去了可填充的差别，也保留了循环相加所诱导的群运算。",
+    "exercise": {
+      "question": "在圆周 S¹ 的整数系数 H₁ ≅ ℤ 中，[z] 是选定方向绕一圈的生成元。绕两圈的类是哪一个？",
+      "options": [
+        "零类，因为路径闭合",
+        "[z]，因为绕着同一个洞",
+        "2[z]，与 [z] 不同",
+        "没有同调类，因为绕了两次"
+      ],
+      "correct_index": 2,
+      "explanation": "链保留整数重数，绕两圈代表 2[z]。在 H₁(S¹;ℤ) ≅ ℤ 中，生成元具有无限阶，所以 2[z] ≠ [z]。只说“同一个洞”无法判定同调类相同。",
+      "dimension": "intuition"
+    },
+    "source": "curated_example",
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "使用整数系数，在单个填满三角形的复形 Y 中令 t=[v₀,v₁,v₂]、z=∂t。作为 C₁ 中的链，2z 与 z 是否相同？它们在 H₁(Y;ℤ) 中的类是否相同？解释取商改变了哪一种比较。",
+        "hint": "链相等要比较基边系数；类相等只要求差是空间内的边界。",
+        "answer": "在 C₁ 中 2z≠z，因为 z 是三条不同基边的非零整数线性组合。取商后，[z]=0，因为 z=∂t；[2z]=0，因为 2z=∂(2t)，故两类相同。它们的差 z 也是边界。商群让可填充的差成为零，并没有改写原链群的相等关系。"
+      },
+      {
+        "level": "challenge",
+        "question": "考虑一个明确给定的整数链复形：C₂=ℤu、C₁=ℤz、C₀=ℤv，∂₂(u)=3z，∂₁(z)=0，其他正维链群为零。求 H₁，判断 [z] 是否为零以及其阶。为什么这说明同调不能普遍解释成“数可见洞”？",
+        "hint": "所有一维链都是循环；边界只有 3z 的整数倍。检查 z、2z、3z 是否属于这个子群。",
+        "answer": "Z₁=ℤz，B₁=3ℤz，所以 H₁≅ℤ/3ℤ。[z]≠0、2[z]≠0，而 3[z]=0，因此 [z] 的阶为 3。商群保留了有限阶的代数关系，单纯“洞的个数”不能编码它。结论只使用题给链复形；没有指定一个具体几何空间，也不能从示意图额外推断拓扑结论。"
+      }
+    ],
+    "illustration": {
+      "title": "取商让边界成为零，让代表归为同类",
+      "caption": "整数系数，z∈Zₙ、c∈Cₙ₊₁，因此 z+∂c 也是循环。箭头示意商映射 q：z 与 z+∂c 都映到 [z]，每个边界 ∂c 都映到 [0]。这是商群关系的结构图；圆形标签、间距与箭头不表示空间形状，也不声明 [z] 非零。",
+      "alt": "左侧循环 z 与 z+∂c 的两个箭头合并指向右侧同调类 [z]；下方边界 ∂c 映到零类 [0]。所有符号使用整数系数，图只说明商映射规则。",
+      "elements": [
+        {
+          "type": "text",
+          "x": 155,
+          "y": 40,
+          "text": "循环 Zₙ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 490,
+          "y": 40,
+          "text": "Hₙ = Zₙ/Bₙ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 155,
+          "y": 102,
+          "text": "z",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 155,
+          "y": 182,
+          "text": "z + ∂c",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 245,
+          "y1": 95,
+          "x2": 425,
+          "y2": 135,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 245,
+          "y1": 175,
+          "x2": 425,
+          "y2": 135,
+          "tone": "blue",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "circle",
+          "cx": 490,
+          "cy": 135,
+          "r": 45,
+          "tone": "blue",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 490,
+          "y": 144,
+          "text": "[z]",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 155,
+          "y": 285,
+          "text": "∂c",
+          "tone": "green",
+          "anchor": "middle"
+        },
+        {
+          "type": "line",
+          "x1": 245,
+          "y1": 278,
+          "x2": 425,
+          "y2": 278,
+          "tone": "green",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "circle",
+          "cx": 490,
+          "cy": 278,
+          "r": 45,
+          "tone": "green",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 490,
+          "y": 287,
+          "text": "[0]",
+          "tone": "green",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "math_context": "使用整数系数的单纯同调。每条基边固定方向：e₀₁=[v₀,v₁]，e₁₂=[v₁,v₂]，e₀₂=[v₀,v₂]；反向边等于负边，∂[vᵢ,vⱼ]=vⱼ−vᵢ。若有2单形t=[v₀,v₁,v₂]，∂t=e₁₂−e₀₂+e₀₁。只有三条边的三角形圆周没有2单形；填充的三角形含t。Zₙ=ker∂ₙ，Bₙ=im∂ₙ₊₁，Hₙ=Zₙ/Bₙ。链相等、同调类相等及同伦是不同关系；ℤ/mℤ仅作商群的代数类比。",
+    "source_notes": [
+      {
+        "title": "Allen Hatcher — Algebraic Topology",
+        "url": "https://pi.math.cornell.edu/~hatcher/AT/ATch2.pdf",
+        "locator": "§2.1，印刷页105—106：整数单纯链、边界公式、Lemma 2.1（∂²=0）与循环模边界；本软件的题目是据这些定义编写的练习，并非教材原题。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "why_homology_quotient_guided",
+        "node_id": "why_homology_quotient",
+        "kind": "guided",
+        "format": "open",
+        "question": "补解释：Hₙ=Zₙ/Bₙ先选___作为代表，再将相差___的代表归为一类。若z=∂c，则[z]=___。为什么不能直接把所有链都当作这些代表？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "定义中分子是循环群。",
+          "同类判据由分母边界群给出。",
+          "非循环具有非零边界，不是Hₙ定义所使用的代表。"
+        ],
+        "reference_answer": "前三空依次是循环、一个边界、零类。Hₙ的代表是满足∂z=0的n链；取商忽略添加边界的差异。一般链不属于Zₙ，不能未经改变定义就当成Hₙ的代表。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "明确循环作为代表和边界作为等价差异"
+          },
+          {
+            "id": "reason_2",
+            "description": "解释边界循环变为零类"
+          }
+        ],
+        "dimension": "intuition",
+        "source": "curated_example"
+      },
+      {
+        "id": "why_homology_quotient_independent",
+        "node_id": "why_homology_quotient",
+        "kind": "independent",
+        "format": "open",
+        "question": "同一公式z=e₀₁+e₁₂−e₀₂，在三角形圆周中和填充三角形中为什么有不同的同调类？请把差别定位到B₁，而不是只说画面有洞。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "两个空间的1链和∂₁公式相同。",
+          "它们的C₂不同。",
+          "圆周C₂=0；填充空间有t且∂t=z。"
+        ],
+        "reference_answer": "两个空间中z都是非零循环。圆周没有2单形，B₁=0，所以[z]非零；填充空间有t并满足∂t=z，故z∈B₁，[z]=0。差别在给定空间有哪些更高维链及其边界，而不在链z是否被画成一条闭合线。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "比较给定空间的C₂与B₁"
+          },
+          {
+            "id": "reason_2",
+            "description": "用是否为边界解释同调类差异"
+          }
+        ],
+        "dimension": "intuition",
+        "source": "curated_example"
+      }
+    ]
+  }
+}

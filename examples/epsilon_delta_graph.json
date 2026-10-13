@@ -1,0 +1,239 @@
+{
+  "target_id": "ed_limit_proof",
+  "nodes": [
+    {
+      "id": "ed_distance",
+      "label": "用绝对值表示输入与输出误差",
+      "prerequisite_sets": [],
+      "rationale": "极限定义用两种距离；先学会把接近写成严格不等式。",
+      "required_abilities": [
+        "将 |x−a|<δ 改写为区间",
+        "计算函数输出误差"
+      ],
+      "branch_outcomes": [],
+      "required_dimensions": []
+    },
+    {
+      "id": "ed_quantifiers",
+      "label": "理解 ε 在前、δ 随后、x 最后的量词顺序",
+      "prerequisite_sets": [],
+      "rationale": "选择的先后决定 δ 可以依赖什么，避免为每个 x 单独挑 δ。",
+      "required_abilities": [
+        "复述∀ε∃δ∀x 的顺序",
+        "区分 δ 对 ε 的依赖和对 x 的依赖"
+      ],
+      "branch_outcomes": [],
+      "required_dimensions": []
+    },
+    {
+      "id": "ed_punctured_domain",
+      "label": "区分去心邻域、定义域与聚点",
+      "prerequisite_sets": [
+        [
+          "ed_distance"
+        ]
+      ],
+      "rationale": "极限只检查定义域中接近 a 且不等于 a 的点，需要这些点确实存在。",
+      "required_abilities": [
+        "说明 0<|x−a| 的作用",
+        "检查 a 是定义域聚点"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点；掌握选项是用户自报，题目作答可作为另行核对的证据。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "ed_limit_definition",
+      "label": "完整写出实函数有限极限的 ε–δ 定义",
+      "prerequisite_sets": [
+        [
+          "ed_quantifiers",
+          "ed_punctured_domain"
+        ]
+      ],
+      "rationale": "定义同时需要正确量词顺序、定义域限制和去心条件。",
+      "required_abilities": [
+        "写出完整定义及假设",
+        "区分极限与点值"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点；掌握选项是用户自报，题目作答可作为另行核对的证据。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "ed_delta_choice",
+      "label": "从输出误差反推一个有效的 δ",
+      "prerequisite_sets": [
+        [
+          "ed_distance",
+          "ed_limit_definition"
+        ]
+      ],
+      "rationale": "选 δ 必须服务于对全部邻近 x 的输出误差控制，而非只验证一个点。",
+      "required_abilities": [
+        "化简 |2x+1−7|=2|x−3|",
+        "选择正的且与 x 无关的 δ"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点；掌握选项是用户自报，题目作答可作为另行核对的证据。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "ed_limit_proof",
+      "label": "独立证明 x→3 时 2x+1→7",
+      "prerequisite_sets": [
+        [
+          "ed_delta_choice",
+          "ed_limit_definition"
+        ]
+      ],
+      "rationale": "把反推选择写回正向证明，才能对任意 ε 与所有合法 x 完成量词要求。",
+      "required_abilities": [
+        "从任意 ε 出发作出 δ 选择",
+        "完成严格不等式链并核对变式"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点；掌握选项是用户自报，题目作答可作为另行核对的证据。"
+      ],
+      "required_dimensions": []
+    }
+  ],
+  "study_plan": {
+    "mode": "proof",
+    "objective": "能够完整解释实函数有限极限的 ε–δ 定义，并独立证明简单仿射函数极限及点值变式。",
+    "criteria": [
+      "准确写出∀ε∃δ∀x顺序、定义域、聚点与去心条件",
+      "根据误差关系选择正的、与任取x无关的δ并验证",
+      "独立完成仿射函数变式并区分极限与点值"
+    ],
+    "math_context": "讨论实函数 f:D⊆R→R 在实数 a 处的有限极限，要求 a 是 D 的聚点，即每个去心邻域都有 D 中的点；量词为∀ε>0 ∃δ>0 ∀x∈D，0<|x−a|<δ⇒|f(x)−L|<ε。δ可依赖ε、固定的函数与点，但不能依赖随后任取的x。主要例子 D=R，f(x)=2x+1，a=3，L=7，可选δ=ε/2；函数点值 f(a) 与极限不同，改动单点值不改变此去心极限。另行定义的变式函数、点与常数会在题目中明确。",
+    "diagnostics": [
+      {
+        "id": "ed_distance_diagnostic",
+        "node_id": "ed_distance",
+        "kind": "diagnostic",
+        "format": "choice",
+        "question": "当 f(x)=2x+1、a=3、L=7 时，|f(x)−L| 化简为什么？不会可跳过。",
+        "options": [
+          "|x−3|",
+          "2|x+3|",
+          "2|x−3|",
+          "|2x+1|"
+        ],
+        "correct_index": 2,
+        "hints": [
+          "先合并常数项。",
+          "将2提到绝对值外。",
+          "误差相对于点 a=3。"
+        ],
+        "reference_answer": "|2x+1−7|=|2x−6|=2|x−3|。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "正确计算输出误差"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "ed_quantifiers_diagnostic",
+        "node_id": "ed_quantifiers",
+        "kind": "diagnostic",
+        "format": "open",
+        "question": "“对每个 ε>0，可找到 δ>0，使所有满足去心条件的 x 都合格”中，δ 能依赖随后任取的 x 吗？为什么？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "把三个选择按先后写出来。",
+          "δ 出现在 ∀x 之前。",
+          "一个 δ 必须同时覆盖整段去心邻域。"
+        ],
+        "reference_answer": "不能。ε、函数和点固定后先选一个 δ，再用同一个 δ 对所有满足条件的 x 验证；为每个 x 另选 δ 改变了量词顺序。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "写明∀ε∃δ∀x顺序"
+          },
+          {
+            "id": "reason_2",
+            "description": "说明同一δ覆盖所有合格x"
+          }
+        ],
+        "dimension": "definition",
+        "source": "curated_example"
+      }
+    ],
+    "final_tasks": [
+      {
+        "id": "ed_limit_proof_final_proof",
+        "node_id": "ed_limit_proof",
+        "kind": "final",
+        "format": "open",
+        "question": "独立用 ε–δ 定义证明 lim(x→3)(2x+1)=7。写明 ε、δ、x 的量词与每一步不等式。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先写“任意 ε>0”。",
+          "输出误差等于2倍输入距离。",
+          "选δ=ε/2后，把证明正向写出。"
+        ],
+        "reference_answer": "给定任意 ε>0，取 δ=ε/2>0。任取 x∈R 满足0<|x−3|<δ，则 |(2x+1)−7|=2|x−3|<2δ=ε。3 是 R 的聚点，因此按去心极限定义，极限为7。δ依赖 ε，不依赖任取的 x。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "正确安排量词且δ>0"
+          },
+          {
+            "id": "reason_2",
+            "description": "用同一个δ对任意合格x验证"
+          },
+          {
+            "id": "reason_3",
+            "description": "完成严格不等式链与定义结论"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "ed_limit_proof_final_transfer",
+        "node_id": "ed_limit_proof",
+        "kind": "final",
+        "format": "open",
+        "question": "变式：g:R→R，g(x)=−3x+2。用 ε–δ 定义证明 x→2 时 g(x)→−4，并说明 g(2)改为100 后去心极限是否改变。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先计算输出误差相对于−4。",
+          "负号取绝对值后得到系数3。",
+          "去心定义是否需要比较x=2处的输出？"
+        ],
+        "reference_answer": "给定 ε>0，取δ=ε/3>0。若0<|x−2|<δ，则 |(−3x+2)−(−4)|=3|x−2|<3δ=ε，所以极限为−4。若只把g(2)改为100，定义仍只检查 x≠2 的点，因此同样的证明成立，去心极限仍为−4，但点值为100。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "为变式选择正确δ并验证"
+          },
+          {
+            "id": "reason_2",
+            "description": "区分极限与修改后的点值"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ],
+    "source_notes": [
+      {
+        "title": "MIT OCW 18.100A, Lecture 13: Limits of Functions",
+        "url": "https://ocw.mit.edu/courses/18-100a-real-analysis-fall-2020/mit18_100af20_lec13.pdf",
+        "locator": "第1页 Definition 2、4：聚点与函数极限；第2页 Example 7、9：仿射函数与极限不等于点值。这里只链接讲义；卡片和练习为自行编写。",
+        "review_status": "curated"
+      }
+    ]
+  }
+}

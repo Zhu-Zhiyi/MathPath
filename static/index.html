@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MathPath · 学习依赖图</title>
+  <link rel="stylesheet" href="/static/style.css?v=0.4.2">
+  <link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
+  <script src="/static/vendor/katex/katex.min.js" defer></script>
+  <script src="/static/app.js?v=0.4.2" defer></script>
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">数学学习路径</p>
+        <h1>MathPath <span class="example-badge">学习工作台 v0.5.0</span></h1>
+      </div>
+      <div class="header-tools" aria-label="学习进度工具">
+        <button id="library-button" class="secondary-button" type="button" aria-haspopup="dialog" aria-controls="library-panel">历史 / 项目</button>
+        <button id="problems-button" class="secondary-button" type="button" aria-haspopup="dialog" aria-controls="library-panel">未解决问题</button>
+        <button id="model-settings-button" class="secondary-button model-settings-button" type="button" aria-haspopup="dialog" aria-controls="model-settings-panel">模型 / API 设置</button>
+        <button id="export-button" class="secondary-button" type="button" disabled>导出进度</button>
+        <button id="import-button" class="secondary-button" type="button">导入进度</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+        <button id="reset-button" class="secondary-button" type="button" disabled>清空标记</button>
+      </div>
+    </header>
+    <p id="model-provider-status" class="model-provider-status" role="status" aria-live="polite">模型：使用本机已保存的配置，打开设置可查看。</p>
+
+    <section class="session-strip" aria-label="当前学习记录">
+      <div><span class="eyebrow">正在学习</span><h2 id="current-history-title">准备学习</h2><p id="current-history-project">未分类</p></div>
+      <p id="history-save-status" role="status" aria-live="polite">正在读取本机学习库…</p>
+      <button id="history-save-retry" class="secondary-button" type="button" hidden>重试保存</button>
+    </section>
+
+    <section class="input-card" aria-labelledby="input-heading">
+      <div class="input-heading">
+        <div>
+          <h2 id="input-heading">你想理解什么？</h2>
+          <p>从一个具体困惑开始，找到下一步该学什么。</p>
+        </div>
+        <div class="example-tools"><label for="example-select" class="visually-hidden">选择审核过的离线样例</label><select id="example-select"><option value="homology">同调群为何取商</option></select><button id="example-button" class="secondary-button" type="button">载入离线样例</button></div>
+      </div>
+      <form id="goal-form">
+        <label class="visually-hidden" for="goal-input">数学学习目标或短文本</label>
+        <textarea id="goal-input" rows="2" maxlength="5000" placeholder="例如：我知道同调群的定义，但想理解为什么要把循环对边界取商。" aria-describedby="input-note"></textarea>
+        <div class="learning-mode-row"><label for="study-mode">这次主要想达到</label><select id="study-mode"><option value="intuition">建立直觉</option><option value="application">学会计算与使用</option><option value="proof">能够说明与证明</option><option value="repair">补齐当前卡点</option></select><p>模式用于新目标和当前先修推荐；已有练习围绕原目标。路线依据自报状态，并非学习难度测量。</p></div>
+        <div class="input-actions">
+          <p id="input-note">最多 5000 字。生成新图和未缓存的学习卡会调用模型；审核过的离线样例无需调用。<strong>生成内容需核对。</strong></p>
+          <button id="generate-button" class="primary-button" type="submit">生成学习图</button>
+        </div>
+      </form>
+      <section id="scope-panel" class="scope-panel" aria-labelledby="scope-heading" hidden><h3 id="scope-heading">先选一个具体方向</h3><p id="scope-reason"></p><fieldset id="scope-options"><legend class="visually-hidden">本次具体学习目标</legend></fieldset><div class="scope-actions"><button id="scope-confirm" class="primary-button" type="button" disabled>以所选目标生成学习图</button><button id="scope-cancel" class="secondary-button" type="button">取消并修改目标</button></div><p class="study-note">本地细分不调用模型；选择并确认后会使用当前模型生成学习图，消耗相应额度。</p></section>
+      <p id="generation-message" class="generation-message" role="status" aria-live="polite">可以先点选下面的样例，或输入自己的目标。</p>
+      <div id="generation-error" class="error-message generation-error" role="alert" hidden>
+        <p id="generation-error-text"></p>
+        <button id="generation-retry" class="secondary-button" type="button">重试生成</button>
+      </div>
+    </section>
+
+    <section id="study-goal-panel" class="study-goal-panel" hidden aria-labelledby="study-objective-title">
+      <div class="card-heading"><h2 id="study-objective-title">可检验的学习目标</h2><button id="final-check-button" class="secondary-button" type="button">最后独立检验</button></div>
+      <p id="study-objective"></p><ul id="study-criteria"></ul><p id="math-context" class="math-context"></p>
+      <section id="goal-books" class="reference-books" aria-label="证明学习的参考教材" hidden><h3>进一步参考教材</h3><div id="goal-books-content"></div></section>
+      <details><summary>本次约定与内容出处</summary><ul id="study-sources"></ul></details>
+      <details id="diagnostic-section"><summary>开始前：用 2—3 道题找出卡点</summary><p class="study-note">可以写“不确定”，也可以跳过。诊断不会替你勾选已掌握。</p><div id="diagnostic-tasks"></div></details>
+      <div id="final-check-section" hidden><h3>离开解释，检验自己能否独立完成</h3><p class="study-note">先写自己的答案，再按需查看参考。记录与自报掌握分开保存。</p><div id="final-check-tasks"></div></div>
+    </section>
+
+    <section class="review-panel" aria-labelledby="review-heading"><div class="card-heading"><h2 id="review-heading">复习与练习</h2><button id="mixed-practice-button" class="secondary-button" type="button" disabled>混合练习</button></div><p id="review-summary">作答后会生成建议复习时间。你可以随时提前复习。</p><div id="review-list" class="review-list"></div><div id="mixed-practice-tasks" hidden></div></section>
+
+    <section class="goal-card" aria-labelledby="goal-heading">
+      <div class="goal-description">
+        <h2 id="goal-heading">这次的学习目标</h2>
+        <p id="target-label">正在载入…</p>
+        <p id="graph-source" class="graph-source"></p>
+      </div>
+      <div class="progress-block" aria-label="自行标记的学习进度">
+        <p id="progress-summary" class="progress-summary">等待学习图</p>
+        <div id="progress-bar" class="progress-bar" role="progressbar" aria-label="全部掌握的知识点比例" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+        <p id="progress-detail" class="progress-detail">掌握标记由你自行判断</p>
+      </div>
+    </section>
+
+    <div id="error-message" class="error-message" role="alert" hidden>
+      <p id="error-text"></p>
+      <button id="retry-button" class="secondary-button" type="button">重试</button>
+    </div>
+
+    <div id="workspace" class="workspace">
+      <section class="graph-card" aria-labelledby="graph-heading">
+        <div class="card-heading">
+          <div>
+            <h2 id="graph-heading">学习地图</h2>
+            <span class="graph-direction">先修 → 后续知识点</span>
+          </div>
+          <div class="view-switch" role="group" aria-label="知识点查看方式">
+            <button id="graph-view-button" class="view-button" type="button" aria-pressed="true" aria-controls="graph-viewport">依赖图</button>
+            <button id="list-view-button" class="view-button" type="button" aria-pressed="false" aria-controls="node-browser">知识点列表</button>
+          </div>
+        </div>
+        <div class="legend" aria-label="节点状态颜色说明">
+          <span><i class="dot known"></i>已掌握</span>
+          <span><i class="dot ready"></i>当前可学</span>
+          <span><i class="dot blocked"></i>先修未满足</span>
+          <span id="neutral-legend" hidden><i class="dot neutral"></i>未标记掌握</span>
+          <span id="route-legend" hidden><i class="route-dot"></i>推荐路线</span>
+        </div>
+        <p class="graph-help">点开知识点开始学习。先修组内需要“全部”满足，多组之间“任选一组”。</p>
+        <div class="graph-toolbar" aria-label="依赖图查看工具">
+          <div class="zoom-buttons">
+            <button id="zoom-out" class="tool-button" type="button" aria-label="缩小依赖图" disabled>−</button>
+            <output id="zoom-label" aria-label="当前缩放比例">100%</output>
+            <button id="zoom-in" class="tool-button" type="button" aria-label="放大依赖图" disabled>+</button>
+          </div>
+          <div class="fit-buttons">
+            <button id="fit-width" class="tool-button" type="button" disabled>适配宽度</button>
+            <button id="fit-all" class="tool-button" type="button" disabled>查看全图</button>
+            <button id="actual-size" class="tool-button" type="button" disabled>100%</button>
+          </div>
+        </div>
+        <div id="graph-viewport" class="graph-viewport" tabindex="0" aria-label="依赖图，可缩放以及上下和左右滚动">
+          <div id="graph-canvas" class="graph-canvas">
+            <p class="placeholder">正在载入依赖图…</p>
+          </div>
+        </div>
+        <div id="node-browser" class="node-browser" hidden>
+          <div class="node-search-row">
+            <label for="node-search">查找知识点</label>
+            <input id="node-search" type="search" placeholder="输入知识点名称" autocomplete="off" aria-controls="node-list">
+          </div>
+          <div id="node-list" class="node-list" aria-label="当前图中的知识点"></div>
+        </div>
+        <p class="footnote">总进度仍按三项全勾计算；路线按当前学习目的所需能力判断先修。“未列出先修”不表示你已掌握。</p>
+      </section>
+
+      <aside class="learning-card" aria-labelledby="learning-heading">
+        <h2 id="learning-heading">现在可以学什么</h2>
+        <p id="plan-message" class="plan-message" role="status" aria-live="polite">正在载入…</p>
+        <p id="known-count" class="known-count">已掌握 0 个知识点</p>
+        <ul id="ready-list" class="ready-list"></ul>
+        <p id="empty-message" class="empty-message" hidden></p>
+        <section id="path-section" class="path-section" aria-labelledby="path-heading" hidden>
+          <h3 id="path-heading">建议学习路线</h3>
+          <p>按需学知识点数量选择路线；推荐依据你的自行标记。知识点编号与学习地图一致，列表顺序表示学习步骤。</p>
+          <ol id="path-list" class="path-list"></ol>
+        </section>
+        <details id="all-ready-section" class="all-ready-section" hidden>
+          <summary id="all-ready-title">全部当前可学候选</summary>
+          <ul id="all-ready-list" class="all-ready-list"></ul>
+        </details>
+      </aside>
+    <section id="lesson-panel" class="lesson-panel" aria-labelledby="lesson-title" hidden>
+      <div class="lesson-header">
+        <div class="lesson-title-block">
+          <p class="eyebrow">知识点学习卡</p>
+          <h2 id="lesson-title" tabindex="-1"></h2>
+        </div>
+        <button id="lesson-close" class="tool-button" type="button" aria-label="关闭学习卡">关闭</button>
+      </div>
+      <nav class="lesson-navigation" aria-label="知识点学习卡导航">
+        <button id="lesson-previous" class="tool-button" type="button" disabled>← 上一个知识点</button>
+        <button id="lesson-next" class="tool-button" type="button" disabled>下一个知识点 →</button>
+      </nav>
+      <div class="lesson-body">
+        <p id="lesson-source" class="lesson-source"></p>
+        <section class="mastery-section" aria-labelledby="mastery-heading">
+          <h3 id="mastery-heading">你的掌握标记</h3>
+          <p class="mastery-note">分别标记你的理解程度。</p>
+          <div class="mastery-options">
+            <label><input id="mastery-definition" type="checkbox">知道定义</label>
+            <label><input id="mastery-intuition" type="checkbox">理解直觉</label>
+            <label><input id="mastery-application" type="checkbox">会使用</label>
+          </div>
+          <div class="mastery-actions">
+            <button id="mastery-all" class="text-button" type="button">自行标记全部掌握</button>
+            <button id="mastery-clear" class="text-button" type="button">清除此节点标记</button>
+          </div>
+          <p id="mastery-hint" class="mastery-hint" role="status" aria-live="polite"></p>
+        </section>
+        <section class="learning-evidence-section"><h3>练习证据</h3><p id="learning-evidence">还没有保存的作答记录。</p><p class="study-note">独立完成、用了提示、查看参考会分别记录。一题答对不会自动代表整个知识点已掌握。开放题自评与已核对的选择题检查分开注明。</p><details><summary>查看本知识点的作答历史</summary><div id="attempt-history"></div></details></section>
+        <section class="lesson-notes-section"><label for="lesson-notes"><strong>我的理解与疑问</strong></label><textarea id="lesson-notes" rows="3" maxlength="6000" placeholder="用自己的话记下理解，或者仍然困惑的一步。"></textarea><p class="study-note">笔记和学习内容保存在本机历史记录中。导出时包含笔记。</p></section>
+        <section id="lesson-prerequisites" class="prerequisite-section" aria-labelledby="prerequisite-heading">
+          <h3 id="prerequisite-heading">先修内容</h3>
+          <p id="prerequisite-rule" class="prerequisite-rule"></p>
+          <div id="prerequisite-groups" class="prerequisite-groups"></div>
+        </section>
+        <p id="lesson-status" class="lesson-status" role="status" aria-live="polite"></p>
+        <div id="lesson-error" class="error-message" role="alert" hidden>
+          <p id="lesson-error-text"></p>
+          <button id="lesson-retry" class="secondary-button" type="button">重试学习卡</button>
+        </div>
+        <div id="lesson-content" hidden>
+          <details id="lesson-definition-section" class="lesson-section" open>
+            <summary>定义</summary>
+            <p id="lesson-definition"></p>
+          </details>
+          <details id="lesson-intuition-section" class="lesson-section" open>
+            <summary>直觉</summary>
+            <p id="lesson-intuition"></p>
+          </details>
+          <section id="lesson-illustration-section" class="lesson-illustration-section" aria-labelledby="lesson-illustration-heading" hidden>
+            <h3 id="lesson-illustration-heading">几何 / 结构示意</h3>
+            <figure class="lesson-figure">
+              <div class="figure-toolbar">
+                <p id="lesson-illustration-title" class="figure-title"></p>
+                <button id="lesson-illustration-zoom" class="tool-button" type="button" aria-pressed="false" aria-controls="lesson-illustration-viewport">放大查看</button>
+              </div>
+              <p id="lesson-illustration-help" class="figure-help">默认完整适配卡片，先看整体结构；放大后可左右滚动查看细节。</p>
+              <div id="lesson-illustration-viewport" class="lesson-illustration-viewport" tabindex="0" aria-label="几何或结构示意图，放大后可左右滚动" aria-describedby="lesson-illustration-help"></div>
+              <figcaption id="lesson-illustration-caption"></figcaption>
+            </figure>
+          </section>
+          <details id="lesson-example-section" class="lesson-section" open>
+            <summary>具体例子</summary>
+            <p id="lesson-example"></p>
+          </details>
+          <details class="lesson-section">
+            <summary>证明思路</summary>
+            <p id="lesson-proof"></p>
+          </details>
+          <section class="exercise-section" aria-labelledby="exercise-heading">
+            <h3 id="exercise-heading">一道微练习</h3>
+            <p id="exercise-dimension" class="exercise-dimension"></p>
+            <form id="exercise-form">
+              <fieldset>
+                <legend id="exercise-question"></legend>
+                <div id="exercise-options" class="exercise-options"></div>
+              </fieldset>
+              <button id="exercise-submit" class="secondary-button" type="submit">检查答案</button>
+            </form>
+            <p id="exercise-feedback" class="exercise-feedback" role="status" aria-live="polite" hidden></p>
+            <p id="exercise-explanation" class="exercise-explanation" hidden></p>
+            <button id="exercise-mark" class="primary-button" type="button" hidden></button>
+            <p class="exercise-note">一道自测题提供理解的线索。答对不会自动标记掌握，请结合学习内容自行判断。</p>
+          </section>
+          <section id="followup-section" class="followup-section" aria-labelledby="followup-heading" hidden>
+            <h3 id="followup-heading">接着练一练</h3>
+            <p class="followup-note">先独立尝试，再按需展开提示或参考答案。练习不会自动改变掌握标记。</p>
+            <ol id="followup-list" class="followup-list"></ol>
+          </section>
+          <section id="adaptive-practice-section"><h3>从示范到独立作答</h3><p class="study-note">先练习关键步骤，再换一道题独立回答。开放题可对照参考自检，或明确选择模型反馈。</p><div id="adaptive-practice-tasks"></div></section>
+          <section id="targeted-help-section"><h3>具体卡在哪里？</h3><div id="targeted-help-actions" class="targeted-help-actions"></div><label for="targeted-help-input" class="visually-hidden">具体问题或证明步骤</label><textarea id="targeted-help-input" rows="2" maxlength="6000" placeholder="补充具体符号、推理步骤或你的证明…"></textarea><div id="targeted-help-result" role="status" aria-live="polite"></div></section>
+          <section id="lesson-books" class="reference-books" aria-label="继续学习的参考教材" hidden><h3>回到教材继续学习</h3><div id="lesson-books-content"></div></section>
+        </div>
+      </div>
+    </section>
+    </div>
+    <footer class="storage-footer">
+      <p id="storage-message" role="status" aria-live="polite">学习历史、笔记和作答保存在本机。账号和 API 密钥不进入学习记录。</p>
+      <button id="storage-button" class="text-button" type="button" disabled>历史管理</button>
+    </footer>
+  </main>
+  <div id="library-overlay" class="library-overlay" hidden><section id="library-panel" class="library-panel" role="dialog" aria-modal="true" aria-labelledby="library-title" tabindex="-1" hidden>
+    <div class="library-header"><div><p class="eyebrow">本机学习库</p><h2 id="library-title">历史记录与项目</h2></div><button id="library-close" class="tool-button" type="button">关闭</button></div>
+    <nav class="library-tabs" aria-label="学习库内容"><button id="library-history-tab" class="secondary-button" type="button" aria-pressed="true" aria-controls="history-library-content">历史与项目</button><button id="library-problems-tab" class="secondary-button" type="button" aria-pressed="false" aria-controls="problem-library-content">未解决问题</button></nav>
+    <div class="library-backup-tools"><button id="full-backup-button" class="secondary-button" type="button">完整备份学习库</button><button id="restore-backup-button" class="secondary-button" type="button">恢复完整备份</button><input id="restore-backup-file" type="file" accept="application/json,.json" hidden><p id="backup-message" role="status" aria-live="polite">包含全部项目、历史和未解决问题；账号与模型连接需在每台电脑单独配置。</p></div>
+    <div id="history-library-content" class="library-body"><nav id="project-navigation" class="project-navigation" aria-label="按项目筛选"></nav><div class="library-main">
+      <div class="library-toolbar"><label for="history-search" class="visually-hidden">搜索历史</label><input id="history-search" type="search" maxlength="200" placeholder="搜索记录标题或学习目标"><button id="manage-projects" class="secondary-button" type="button">管理项目</button></div>
+      <div id="project-management" class="project-management" hidden><form id="project-create-form"><label for="project-create-title">新项目名称</label><div class="inline-form"><input id="project-create-title" maxlength="100" placeholder="例如：代数拓扑"><button class="primary-button" type="submit">创建项目</button></div></form><div class="bulk-toolbar"><label><input id="select-all-projects" type="checkbox">全选项目</label><span id="project-selected-count">已选 0 个</span><button id="delete-projects" class="danger-button" type="button" disabled>删除所选项目</button></div><p class="study-note">删除项目会将里面的历史保留并移到“未分类”。</p><div id="project-manage-list"></div></div>
+      <div class="bulk-toolbar"><label><input id="select-all-histories" type="checkbox">全选当前列表</label><span id="history-selected-count">已选 0 条</span><select id="move-history-project" aria-label="移动所选历史的目标项目"></select><button id="move-histories" class="secondary-button" type="button" disabled>移入项目</button><button id="delete-histories" class="danger-button" type="button" disabled>删除所选历史</button></div>
+      <p id="library-message" role="status" aria-live="polite"></p><div id="history-list" class="history-list"></div><button id="history-load-more" class="secondary-button" type="button" hidden>载入更多</button>
+    </div></div>
+    <section id="problem-library-content" class="problem-library-content" hidden><p class="study-note">模型明确未答出、表示不确定或请求失败的问题会记在这里。你也可以手动记下仍没弄懂的问题；后续回答不会自动将旧问题标为解决。</p><div class="library-toolbar"><label class="visually-hidden" for="problem-search">搜索未解决问题</label><input id="problem-search" type="search" maxlength="200" placeholder="搜索问题、目标或知识点"><label class="visually-hidden" for="problem-filter">问题状态</label><select id="problem-filter"><option value="open">未解决</option><option value="resolved">已解决</option><option value="all">全部</option></select><button id="problem-refresh" class="secondary-button" type="button">刷新</button></div><div class="bulk-toolbar"><label><input id="select-all-problems" type="checkbox">全选当前列表</label><span id="problem-selected-count">已选 0 条</span><button id="delete-problems" class="danger-button" type="button" disabled>删除所选问题</button></div><p id="problem-message" role="status" aria-live="polite"></p><div id="problem-list"></div><button id="problem-load-more" class="secondary-button" type="button" hidden>载入更多</button></section>
+    <div id="library-confirmation" class="library-confirmation" hidden role="group" aria-labelledby="library-confirm-title"><h3 id="library-confirm-title">确认删除</h3><p id="library-confirm-description"></p><button id="library-confirm-yes" class="danger-button" type="button">确认删除</button><button id="library-confirm-no" class="secondary-button" type="button">取消</button></div>
+  </section></div>
+  <div id="model-settings-overlay" class="model-settings-overlay" hidden>
+    <section id="model-settings-panel" class="model-settings-panel" role="dialog" aria-modal="true" aria-labelledby="model-settings-title" aria-describedby="model-settings-description" tabindex="-1" hidden>
+      <div class="model-settings-header">
+        <div>
+          <p class="eyebrow">模型连接</p>
+          <h2 id="model-settings-title">模型 / API 设置</h2>
+        </div>
+        <button id="model-settings-close" class="tool-button" type="button">关闭</button>
+      </div>
+      <div class="model-settings-body">
+        <p id="model-settings-description" class="model-settings-description">选择 ChatGPT 授权，或接入你自己的 API。API 密钥仅保存在本机，使用 Windows 加密保护。请直接在下方输入密钥。</p>
+        <p id="model-settings-active" class="model-settings-active">正在读取本机配置…</p>
+        <form id="model-settings-form" autocomplete="off">
+          <div class="model-setting-field">
+            <label for="model-provider">使用方式</label>
+            <select id="model-provider">
+              <option value="chatgpt">ChatGPT 授权</option>
+              <option value="api">自定义 API</option>
+            </select>
+          </div>
+          <div id="chatgpt-login-section" class="chatgpt-login-section">
+            <button id="chatgpt-login-button" class="primary-button chatgpt-login-button" type="button" aria-describedby="chatgpt-login-note chatgpt-login-status">登录 / 重新连接 ChatGPT</button>
+            <p id="chatgpt-login-note" class="model-setting-note">点击后在系统浏览器打开官方授权页面。登录不会调用模型，也不会保存或切换使用方式；连接后按需点击“保存并使用”。</p>
+            <p id="chatgpt-login-status" class="chatgpt-login-status" role="status" aria-live="polite">打开设置后读取本次登录进度。</p>
+          </div>
+          <div id="model-api-fields" class="model-api-fields" hidden>
+            <div class="model-setting-field">
+              <label for="model-base-url">基础 API 地址</label>
+              <input id="model-base-url" type="url" maxlength="2048" placeholder="https://api.openai.com/v1" autocomplete="off" spellcheck="false" aria-describedby="model-base-url-note">
+              <p id="model-base-url-note" class="model-setting-note">填写平台提供的基础地址，通常以 /v1 结尾。不要填写完整的聊天请求路径。</p>
+            </div>
+            <div class="model-setting-field">
+              <label for="model-model">模型 ID</label>
+              <input id="model-model" type="text" maxlength="200" placeholder="填写平台提供的确切模型 ID" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="model-setting-field">
+              <label for="model-api-key">API 密钥</label>
+              <input id="model-api-key" type="password" maxlength="4096" autocomplete="off" spellcheck="false" placeholder="输入你的 API 密钥" aria-describedby="model-api-key-note">
+              <p id="model-api-key-note" class="model-setting-note">留空会保留已保存的密钥。密钥不会写入浏览器进度或导出文件，也不会回填显示。</p>
+            </div>
+            <div class="model-setting-columns">
+              <div class="model-setting-field">
+                <label for="model-api-format">API 格式</label>
+                <select id="model-api-format">
+                  <option value="chat_completions">Chat Completions</option>
+                  <option value="responses">Responses</option>
+                </select>
+              </div>
+              <div class="model-setting-field">
+                <label for="model-output-mode">结构化输出</label>
+                <select id="model-output-mode">
+                  <option value="json_object">JSON 对象（多数平台兼容）</option>
+                  <option value="json_schema">严格 JSON Schema</option>
+                  <option value="prompt_only">仅提示约束</option>
+                </select>
+              </div>
+            </div>
+            <p class="model-setting-note">按平台支持的格式选择。生成学习图或未缓存学习卡时，你的学习目标和相关内容将发往所填平台，并按该平台规则计费。</p>
+          </div>
+          <p class="model-setting-note model-save-note">保存只更新本机配置，不会测试连接或自动生成内容。</p>
+          <p id="model-settings-message" class="model-settings-message" role="status" aria-live="polite"></p>
+          <p id="model-settings-error" class="model-settings-error" role="alert" hidden></p>
+          <div class="model-settings-actions">
+            <button id="model-settings-save" class="primary-button" type="submit" disabled>保存并使用</button>
+            <button id="model-settings-test" class="secondary-button" type="button" disabled>测试已保存 API（可能计费）</button>
+            <button id="model-settings-clear" class="text-button" type="button" disabled>清除已存密钥</button>
+          </div>
+          <p class="model-setting-note">修改后请先保存，再测试。清除密钥会切回 ChatGPT 授权。</p>
+        </form>
+      </div>
+    </section>
+  </div>
+  <button id="chat-launcher" class="chat-launcher" type="button" aria-haspopup="dialog" aria-controls="chat-window" aria-expanded="false"><span aria-hidden="true">↗</span> 随时提问</button>
+  <section id="chat-window" class="chat-window" role="dialog" aria-modal="false" aria-labelledby="chat-window-title" aria-describedby="chat-window-help" hidden>
+    <header id="chat-titlebar" class="chat-titlebar" tabindex="0" aria-label="移动提问窗口。拖动标题栏，或用方向键移动；Shift 加方向键移动更远。">
+      <div class="chat-title"><span class="chat-title-mark" aria-hidden="true">↗</span><div><h2 id="chat-window-title">随时提问</h2><p>把当前卡点说清楚</p></div></div>
+      <div class="chat-window-tools"><button id="chat-reset-position" class="chat-icon-button" type="button" aria-label="恢复提问窗口位置和大小" title="恢复位置与大小">↺</button><button id="chat-collapse" class="chat-icon-button" type="button" aria-label="折叠提问窗口" aria-expanded="true" aria-controls="chat-body" title="折叠">−</button><button id="chat-close" class="chat-icon-button" type="button" aria-label="关闭提问窗口，保留草稿" title="关闭">×</button></div>
+    </header>
+    <div id="chat-body" class="chat-body">
+      <div class="chat-context-row"><label for="chat-context">围绕</label><select id="chat-context"><option value="">当前学习目标</option></select></div>
+      <p id="chat-context-note" class="chat-context-note"></p>
+      <section id="chat-scope-panel" class="chat-scope-panel" hidden aria-label="将问题细化为一个具体方向"><p id="chat-scope-reason"></p><div id="chat-scope-options"></div><button id="chat-scope-cancel" class="text-button" type="button">取消并修改问题</button></section>
+      <div id="chat-messages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions" aria-label="本条学习记录的提问与回复"></div>
+      <form id="chat-form" class="chat-form">
+        <label for="chat-question" class="visually-hidden">你的数学问题</label><textarea id="chat-question" rows="3" maxlength="6000" placeholder="例如：这里为什么能说两个循环代表同一同调类？" aria-describedby="chat-mode-note chat-window-help"></textarea>
+        <label class="chat-model-choice"><input id="chat-use-model" type="checkbox" checked><span>使用当前模型回答</span></label>
+        <p id="chat-mode-note" class="chat-mode-note">点击发送后，把问题、所选学习内容和近期对话发给当前模型，消耗相应额度。</p>
+        <div class="chat-send-row"><p id="chat-status" role="status" aria-live="polite">打开窗口、移动或选知识点不会调用模型。</p><button id="chat-keep-problem" class="tool-button" type="button" hidden>存入未解决问题</button><button id="chat-cancel" class="tool-button" type="button" hidden>取消等待</button><button id="chat-send" class="primary-button" type="submit">发送问题</button></div>
+      </form>
+      <p id="chat-window-help" class="chat-window-help">Enter 换行，Ctrl / ⌘ + Enter 发送。窗口可拖动；右下角可调整大小，也支持方向键。</p>
+    </div>
+    <button id="chat-resize-grip" class="chat-resize-grip" type="button" aria-label="调整提问窗口大小。拖动此处，或用方向键；Shift 加方向键调整更多。" title="拖动或用方向键调整大小">◢</button>
+  </section>
+</body>
+</html>

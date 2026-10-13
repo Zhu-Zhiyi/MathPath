@@ -1,0 +1,282 @@
+{
+  "target_id": "why_homology_quotient",
+  "nodes": [
+    {
+      "id": "chains_as_formal_sums",
+      "label": "理解链是单形、胞腔等几何片段的形式线性组合",
+      "prerequisite_sets": [],
+      "rationale": "先学链的代数表示，后续边界运算才有明确对象。",
+      "required_abilities": [
+        "识别定向基边与整数系数",
+        "逐项加减同一维链"
+      ],
+      "branch_outcomes": [],
+      "required_dimensions": []
+    },
+    {
+      "id": "boundary_operator",
+      "label": "理解边界算子如何把一个链映到它的边界链",
+      "prerequisite_sets": [
+        [
+          "chains_as_formal_sums"
+        ]
+      ],
+      "rationale": "边界算子作用在链上；需要分清基边和系数才能使用线性性。",
+      "required_abilities": [
+        "用终点减起点计算边的边界",
+        "用线性性计算简单链的边界"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点列出的能力；学习模式决定是否还需练习独立运算与证明。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "cycles_and_boundaries",
+      "label": "理解循环是边界为零的链，而边界链是某个更高维链的边界",
+      "prerequisite_sets": [
+        [
+          "boundary_operator"
+        ]
+      ],
+      "rationale": "循环由∂z=0刻画，边界由z=∂c刻画；都需要会使用边界算子。",
+      "required_abilities": [
+        "区分边界为零与自身是边界",
+        "指出问题所在空间有哪些维度的链"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点列出的能力；学习模式决定是否还需练习独立运算与证明。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "boundary_squared_zero",
+      "label": "理解“边界的边界为零”即 ∂²=0",
+      "prerequisite_sets": [
+        [
+          "boundary_operator"
+        ]
+      ],
+      "rationale": "先会算边界，才能看到各顶点项在二次边界中抵消。",
+      "required_abilities": [
+        "解释有向三角形的二次边界为何抵消"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点列出的能力；学习模式决定是否还需练习独立运算与证明。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "boundaries_inside_cycles",
+      "label": "由 ∂²=0 理解每个边界链都是循环，因此 B_n 是 Z_n 的子群",
+      "prerequisite_sets": [
+        [
+          "cycles_and_boundaries",
+          "boundary_squared_zero"
+        ]
+      ],
+      "rationale": "既要识别循环和边界，又要用∂²=0推出包含关系。",
+      "required_abilities": [
+        "从z=∂c推出∂z=0",
+        "知道反向包含一般不成立"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点列出的能力；学习模式决定是否还需练习独立运算与证明。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "quotient_group_meaning",
+      "label": "理解商群通过陪集把相差一个子群元素的对象视为等价",
+      "prerequisite_sets": [],
+      "rationale": "商群是把相差一个指定子群元素的对象归类；此处先用整数群做类比。",
+      "required_abilities": [
+        "用差属于子群解释同一个陪集",
+        "区分对象相等和等价类相等"
+      ],
+      "branch_outcomes": [],
+      "required_dimensions": []
+    },
+    {
+      "id": "cycles_mod_boundaries",
+      "label": "理解 Z_n/B_n 把相差一个边界的循环归为同一类",
+      "prerequisite_sets": [
+        [
+          "boundaries_inside_cycles",
+          "quotient_group_meaning"
+        ]
+      ],
+      "rationale": "Bₙ⊆Zₙ保证可以在循环群中取商；商群知识解释怎样合并循环。",
+      "required_abilities": [
+        "写出[z₁]=[z₂]当且仅当z₁−z₂∈Bₙ",
+        "解释边界循环在商群中成为零"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点列出的能力；学习模式决定是否还需练习独立运算与证明。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "why_homology_quotient",
+      "label": "理解同调群取商：把边界循环视为零，并把相差一个边界的循环归为同一同调类",
+      "prerequisite_sets": [
+        [
+          "cycles_mod_boundaries",
+          "cycles_and_boundaries"
+        ]
+      ],
+      "rationale": "先理解取商的等价关系，再用循环与边界比较填充前后的例子。",
+      "required_abilities": [
+        "用准确的等价关系解释取商动机",
+        "比较圆周与填充三角形中的同一个循环"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点列出的能力；学习模式决定是否还需练习独立运算与证明。"
+      ],
+      "required_dimensions": []
+    }
+  ],
+  "study_plan": {
+    "mode": "intuition",
+    "objective": "能够用循环、边界与等价类解释同调取商的动机，并比较三角形圆周与填充三角形。",
+    "criteria": [
+      "从∂²=0解释Bₙ⊆Zₙ与取商的合法性",
+      "用z₁−z₂∈Bₙ判断循环是否同类，并区分链相等",
+      "独立比较只有边和含填充面时一个循环的同调类"
+    ],
+    "math_context": "使用整数系数的单纯同调。每条基边固定方向：e₀₁=[v₀,v₁]，e₁₂=[v₁,v₂]，e₀₂=[v₀,v₂]；反向边等于负边，∂[vᵢ,vⱼ]=vⱼ−vᵢ。若有2单形t=[v₀,v₁,v₂]，∂t=e₁₂−e₀₂+e₀₁。只有三条边的三角形圆周没有2单形；填充的三角形含t。Zₙ=ker∂ₙ，Bₙ=im∂ₙ₊₁，Hₙ=Zₙ/Bₙ。链相等、同调类相等及同伦是不同关系；ℤ/mℤ仅作商群的代数类比。",
+    "diagnostics": [
+      {
+        "id": "boundary_operator_diagnostic",
+        "node_id": "boundary_operator",
+        "kind": "diagnostic",
+        "format": "choice",
+        "question": "整数系数、e₀₁=[v₀,v₁]。∂(2e₀₁)是什么？如果不会，可以跳过。",
+        "options": [
+          "v₁−v₀",
+          "2v₁−2v₀",
+          "0，因为经过同一条边",
+          "v₀−v₁"
+        ],
+        "correct_index": 1,
+        "hints": [
+          "边界取终点减起点。",
+          "边界算子是群同态。",
+          "先算∂e₀₁，再乘2。"
+        ],
+        "reference_answer": "∂(2e₀₁)=2(v₁−v₀)。负号由基边方向决定，系数2由线性性保留。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "使用方向确定终点减起点"
+          },
+          {
+            "id": "reason_2",
+            "description": "保留整数系数与线性性"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "quotient_group_meaning_diagnostic",
+        "node_id": "quotient_group_meaning",
+        "kind": "diagnostic",
+        "format": "open",
+        "question": "在ℤ/3ℤ中，4和7为何代表同一个类？这是否表示整数4=7？如果不会，可以跳过。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "同一类由两数的差判断。",
+          "检查7−4是否属于3ℤ。",
+          "整数的相等和陪集的相等是不同关系。"
+        ],
+        "reference_answer": "7−4=3∈3ℤ，所以4+3ℤ=7+3ℤ；整数4和7仍然不相等。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "检验差属于3ℤ"
+          },
+          {
+            "id": "reason_2",
+            "description": "明确整数相等与陪集相等不同"
+          }
+        ],
+        "dimension": "definition",
+        "source": "curated_example"
+      }
+    ],
+    "final_tasks": [
+      {
+        "id": "why_homology_quotient_final_reasoning",
+        "node_id": "why_homology_quotient",
+        "kind": "final",
+        "format": "open",
+        "question": "请独立说明：为什么Hₙ定义为Zₙ/Bₙ？说明(1)为什么能取这个商；(2)两个循环何时同类；(3)为什么边界循环应表示零。不要只用“表示同一个洞”代替理由。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先检查Bₙ是否是Zₙ的子群。",
+          "设z=∂c，计算∂z。",
+          "把相差一个边界的循环写成陪集相等；边界与零相差一个边界。"
+        ],
+        "reference_answer": "边界算子是群同态，Zₙ是核、Bₙ是像；∂²=0给Bₙ⊆Zₙ。链群为阿贝尔群，故Bₙ是Zₙ的正规子群，商群成立。对于循环z₁,z₂，[z₁]=[z₂]当且仅当z₁−z₂=∂c对某个(n+1)链c成立；特别地边界循环与0同类。取商保留不能在该空间中填成边界的循环差异，而不把链本身的相等与同调类相等混淆。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "由∂²=0与阿贝尔群解释取商合法"
+          },
+          {
+            "id": "reason_2",
+            "description": "给出差是边界的精确同类条件"
+          },
+          {
+            "id": "reason_3",
+            "description": "解释边界循环为何成为零类"
+          }
+        ],
+        "dimension": "intuition",
+        "source": "curated_example"
+      },
+      {
+        "id": "why_homology_quotient_final_transfer",
+        "node_id": "why_homology_quotient",
+        "kind": "final",
+        "format": "open",
+        "question": "整数系数，z=e₀₁+e₁₂−e₀₂。比较空间A（只有三条边的三角形圆周）和空间B（再加入t=[v₀,v₁,v₂]）。求两者H₁，并解释为什么两处z都是非零链、但它们的同调类表现不同。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先用∂(ae₀₁+be₁₂+ce₀₂)判断循环条件。",
+          "循环条件是a=b=−c；再找各空间的B₁。",
+          "A没有2单形所以B₁=0；B的∂t=z使B₁=Z₁。"
+        ],
+        "reference_answer": "一般1链的边界为(−a−c)v₀+(a−b)v₁+(b+c)v₂；循环要求a=b=−c，所以Z₁=ℤz。A中C₂=0，故B₁=0，H₁(A)≅ℤ；B中C₂=ℤt且∂t=z，故B₁=ℤz=Z₁，H₁(B)=0。z的基边系数(1,1,−1)非零，在两个链群中都不是零链；只有在B中[z]=0。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "通过边界运算求循环群"
+          },
+          {
+            "id": "reason_2",
+            "description": "按空间是否含2单形求边界群"
+          },
+          {
+            "id": "reason_3",
+            "description": "区分零同调类和零链"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ],
+    "source_notes": [
+      {
+        "title": "Allen Hatcher — Algebraic Topology",
+        "url": "https://pi.math.cornell.edu/~hatcher/AT/ATch2.pdf",
+        "locator": "§2.1，印刷页105—106：整数单纯链、边界公式、Lemma 2.1（∂²=0）与循环模边界；本软件的题目是据这些定义编写的练习，并非教材原题。",
+        "review_status": "curated"
+      }
+    ]
+  }
+}

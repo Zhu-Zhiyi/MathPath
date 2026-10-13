@@ -1,0 +1,1820 @@
+{
+  "ed_distance": {
+    "node_id": "ed_distance",
+    "title": "绝对值就是距离",
+    "definition": "实数 x 与 a 的距离为 $|x-a|$。$\\delta>0$ 时，$|x-a|<\\delta$ 等价于 $a-\\delta<x<a+\\delta$；输出误差 $|f(x)-L|$ 与输入距离是不同的数。",
+    "intuition": "δ 衡量输入容许接近范围，ε 衡量输出容许误差。不是把两个数字规定成相同，而是利用函数关系寻找足以控制输出的输入范围。",
+    "example": "本例 $|f(x)-7|=|2x+1-7|=2|x-3|$。$x=3.1$ 时输入距离0.1，输出误差0.2；若输入距离小于0.05，输出误差就小于0.1。",
+    "proof_idea": "|x−a|<δ 等价于−δ<x−a<δ，移项得到区间。|2u|=2|u| 则给出本例误差关系，这个恒等式对所有实数 x 成立。",
+    "exercise": {
+      "question": "条件 |x−3|<0.2 等价于哪个区间？",
+      "options": [
+        "2.8<x<3.2",
+        "−0.2<x<0.2",
+        "3<x<3.2",
+        "x<3.2"
+      ],
+      "correct_index": 0,
+      "explanation": "−0.2<x−3<0.2，两端加3得到2.8<x<3.2。",
+      "dimension": "application"
+    },
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "本例 x=2.9 时输入距离和输出误差分别是多少？",
+        "hint": "先算 x−3，再算 f(x)−7。",
+        "answer": "输入距离0.1；f(2.9)=6.8，输出误差0.2。"
+      },
+      {
+        "level": "challenge",
+        "question": "变式 h(x)=−4x+5，点 a=1、候选极限 L=1，化简输出误差。",
+        "hint": "先把 h(x)−L 因式分解。",
+        "answer": "|−4x+5−1|=|−4(x−1)|=4|x−1|。"
+      }
+    ],
+    "illustration": {
+      "title": "输入 δ 带落在输出 ε 带内",
+      "caption": "示意 ε=1、δ=1/2。横轴单位与纵轴单位的像素比例不同，但标注对应真实坐标：x=3±1/2 时 2x+1=7±1。蓝色直线穿过 (3,7)；空心标记表示去心比较排除输入 x=3，不表示 f(3)未定义。对任意 ε>0，用 δ=ε/2 同样成立，图本身只显示其中一次选择。",
+      "alt": "y=2x+1 经过 (3,7)。x 在 2.5 到 3.5 的开区间且不等于3时，y 在6到8的开区间内。",
+      "elements": [
+        {
+          "type": "polygon",
+          "points": [
+            [
+              230,
+              45
+            ],
+            [
+              410,
+              45
+            ],
+            [
+              410,
+              310
+            ],
+            [
+              230,
+              310
+            ]
+          ],
+          "tone": "blue",
+          "fill": true
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              100,
+              90
+            ],
+            [
+              535,
+              90
+            ],
+            [
+              535,
+              270
+            ],
+            [
+              100,
+              270
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 545,
+          "y2": 310,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 100,
+          "y2": 40,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 200,
+          "y1": 300,
+          "x2": 440,
+          "y2": 60,
+          "tone": "blue",
+          "arrow": false,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 230,
+          "y1": 45,
+          "x2": 230,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 410,
+          "y1": 45,
+          "x2": 410,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 90,
+          "x2": 535,
+          "y2": 90,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 270,
+          "x2": 535,
+          "y2": 270,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "circle",
+          "cx": 320,
+          "cy": 180,
+          "r": 5,
+          "tone": "blue",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 169,
+          "text": "(3,7)",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 230,
+          "y": 335,
+          "text": "3−δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 335,
+          "text": "3",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 410,
+          "y": 335,
+          "text": "3+δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 94,
+          "text": "7+ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 274,
+          "text": "7−ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 498,
+          "y": 70,
+          "text": "y=2x+1",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 557,
+          "y": 315,
+          "text": "x",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 91,
+          "y": 32,
+          "text": "y",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "source": "curated_example",
+    "math_context": "讨论实函数 f:D⊆R→R 在实数 a 处的有限极限，要求 a 是 D 的聚点，即每个去心邻域都有 D 中的点；量词为∀ε>0 ∃δ>0 ∀x∈D，0<|x−a|<δ⇒|f(x)−L|<ε。δ可依赖ε、固定的函数与点，但不能依赖随后任取的x。主要例子 D=R，f(x)=2x+1，a=3，L=7，可选δ=ε/2；函数点值 f(a) 与极限不同，改动单点值不改变此去心极限。另行定义的变式函数、点与常数会在题目中明确。",
+    "source_notes": [
+      {
+        "title": "MIT OCW 18.100A, Lecture 13: Limits of Functions",
+        "url": "https://ocw.mit.edu/courses/18-100a-real-analysis-fall-2020/mit18_100af20_lec13.pdf",
+        "locator": "第1页 Definition 2、4：聚点与函数极限；第2页 Example 7、9：仿射函数与极限不等于点值。这里只链接讲义；卡片和练习为自行编写。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "ed_distance_guided",
+        "node_id": "ed_distance",
+        "kind": "guided",
+        "format": "open",
+        "question": "补误差计算：|2x+1−7|=|____|=2|____|。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先合并1−7。",
+          "把2提取为公因子。",
+          "绝对值等式是 |2u|=2|u|。"
+        ],
+        "reference_answer": "依次填 2x−6 和 x−3。因为2x−6=2(x−3)，绝对值中的正系数2可提出。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "正确化简函数输出误差"
+          },
+          {
+            "id": "reason_2",
+            "description": "说明绝对值数乘规则"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "ed_distance_independent",
+        "node_id": "ed_distance",
+        "kind": "independent",
+        "format": "open",
+        "question": "独立题：若本例 |x−3|<0.04，能否保证 |f(x)−7|<0.1？给出严格界。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "使用输出误差恒等式。",
+          "乘上系数2。",
+          "比较得到的界和0.1。"
+        ],
+        "reference_answer": "能。|f(x)−7|=2|x−3|<0.08<0.1；不需要输入距离恰等于0.04。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "得出严格输出误差界"
+          },
+          {
+            "id": "reason_2",
+            "description": "比较界并给结论"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "ed_quantifiers": {
+    "node_id": "ed_quantifiers",
+    "title": "ε、δ、x 的顺序",
+    "definition": "极限定义的顺序是$\\forall\\varepsilon>0$，$\\exists\\delta>0$，$\\forall x\\in D$：若$0<|x-a|<\\delta$则$|f(x)-L|<\\varepsilon$。先给任意输出容差，再选输入范围，最后对该范围内所有合法输入验证。",
+    "intuition": "可把 ε 看作别人提出的容差；你需给出一个 δ，覆盖全部相关输入。δ 通常可以随 ε 变小，不能等见到某个 x 后另选 δ 把它排除。",
+    "example": "本例给出规则 $\\delta(\\varepsilon)=\\varepsilon/2$；$\\varepsilon=0.2$ 时 $\\delta=0.1$，$\\varepsilon=0.02$ 时 $\\delta=0.01$。每次固定 ε 后，同一个 δ 对整个去心邻域内的 x 使用。",
+    "proof_idea": "要证明∀ε∃δ∀x，需要展示δ的选择并在其后任取x验证。只检查有限多个样本，或针对每个 x 给不同 δ，都不能完成这个量词要求。",
+    "exercise": {
+      "question": "以下哪个选择符合本例量词顺序？",
+      "options": [
+        "看见x后令δ=|x−3|/2，以排除该x",
+        "只为ε=0.1找到一个δ",
+        "先选一个δ再允许ε任意小",
+        "给定任意ε>0，先选δ=ε/2，再验证所有合格x"
+      ],
+      "correct_index": 3,
+      "explanation": "δ=ε/2先于任取x确定，可对同一邻域中的所有x验证输出误差；其余选项改变量词或只处理单个ε。",
+      "dimension": "definition"
+    },
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "ε=0.06 时，本例规则给什么 δ？",
+        "hint": "输出误差放大为2倍。",
+        "answer": "可取δ=0.03；任意0<|x−3|<0.03的x，输出误差均小于0.06。"
+      },
+      {
+        "level": "challenge",
+        "question": "本例能否固定一个δ₀>0，同时满足所有 ε>0？",
+        "hint": "固定δ₀后取一个邻域内的非零距离，再选更小 ε。",
+        "answer": "不能。令x=3+δ₀/2，则0<|x−3|<δ₀且输出误差δ₀。选ε=δ₀/2就违反误差要求。通常δ需随ε调整。"
+      }
+    ],
+    "illustration": {
+      "title": "输入 δ 带落在输出 ε 带内",
+      "caption": "示意 ε=1、δ=1/2。横轴单位与纵轴单位的像素比例不同，但标注对应真实坐标：x=3±1/2 时 2x+1=7±1。蓝色直线穿过 (3,7)；空心标记表示去心比较排除输入 x=3，不表示 f(3)未定义。对任意 ε>0，用 δ=ε/2 同样成立，图本身只显示其中一次选择。",
+      "alt": "y=2x+1 经过 (3,7)。x 在 2.5 到 3.5 的开区间且不等于3时，y 在6到8的开区间内。",
+      "elements": [
+        {
+          "type": "polygon",
+          "points": [
+            [
+              230,
+              45
+            ],
+            [
+              410,
+              45
+            ],
+            [
+              410,
+              310
+            ],
+            [
+              230,
+              310
+            ]
+          ],
+          "tone": "blue",
+          "fill": true
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              100,
+              90
+            ],
+            [
+              535,
+              90
+            ],
+            [
+              535,
+              270
+            ],
+            [
+              100,
+              270
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 545,
+          "y2": 310,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 100,
+          "y2": 40,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 200,
+          "y1": 300,
+          "x2": 440,
+          "y2": 60,
+          "tone": "blue",
+          "arrow": false,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 230,
+          "y1": 45,
+          "x2": 230,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 410,
+          "y1": 45,
+          "x2": 410,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 90,
+          "x2": 535,
+          "y2": 90,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 270,
+          "x2": 535,
+          "y2": 270,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "circle",
+          "cx": 320,
+          "cy": 180,
+          "r": 5,
+          "tone": "blue",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 169,
+          "text": "(3,7)",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 230,
+          "y": 335,
+          "text": "3−δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 335,
+          "text": "3",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 410,
+          "y": 335,
+          "text": "3+δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 94,
+          "text": "7+ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 274,
+          "text": "7−ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 498,
+          "y": 70,
+          "text": "y=2x+1",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 557,
+          "y": 315,
+          "text": "x",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 91,
+          "y": 32,
+          "text": "y",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "source": "curated_example",
+    "math_context": "讨论实函数 f:D⊆R→R 在实数 a 处的有限极限，要求 a 是 D 的聚点，即每个去心邻域都有 D 中的点；量词为∀ε>0 ∃δ>0 ∀x∈D，0<|x−a|<δ⇒|f(x)−L|<ε。δ可依赖ε、固定的函数与点，但不能依赖随后任取的x。主要例子 D=R，f(x)=2x+1，a=3，L=7，可选δ=ε/2；函数点值 f(a) 与极限不同，改动单点值不改变此去心极限。另行定义的变式函数、点与常数会在题目中明确。",
+    "source_notes": [
+      {
+        "title": "MIT OCW 18.100A, Lecture 13: Limits of Functions",
+        "url": "https://ocw.mit.edu/courses/18-100a-real-analysis-fall-2020/mit18_100af20_lec13.pdf",
+        "locator": "第1页 Definition 2、4：聚点与函数极限；第2页 Example 7、9：仿射函数与极限不等于点值。这里只链接讲义；卡片和练习为自行编写。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "ed_quantifiers_guided",
+        "node_id": "ed_quantifiers",
+        "kind": "guided",
+        "format": "open",
+        "question": "补量词解释：先固定ε，再选δ，之后任取x。这说明δ可以依赖什么、不能依赖什么？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "找出哪个参数已固定。",
+          "x 是最后的全称量词。",
+          "同一个 δ 应适用于整段邻域。"
+        ],
+        "reference_answer": "δ可依赖ε以及已固定的f、a、L，但不能依赖随后任取的x；同一δ必须控制所有符合前件的定义域输入。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "说明δ的合法依赖"
+          },
+          {
+            "id": "reason_2",
+            "description": "保持∀x要求"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "ed_quantifiers_independent",
+        "node_id": "ed_quantifiers",
+        "kind": "independent",
+        "format": "open",
+        "question": "独立反误解：一名同学验证了 x=2.99 与3.01 两点满足误差要求，就说证明完毕。缺什么？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "定义中是有限点还是所有点？",
+          "ε 是否也是任意的？",
+          "需要一条对全体邻域输入成立的不等式。"
+        ],
+        "reference_answer": "缺少对任意 ε 的δ选择以及对所有满足去心条件x的统一验证。有限样本只能举例；本例应使用 |f(x)−7|=2|x−3| 对任意x给出界。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "指出有限样本不替代∀x"
+          },
+          {
+            "id": "reason_2",
+            "description": "指出任意ε和统一界的要求"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "ed_punctured_domain": {
+    "node_id": "ed_punctured_domain",
+    "title": "去心邻域与聚点",
+    "definition": "去心条件$0<|x-a|<\\delta$排除$x=a$。函数极限只检查定义域D内的这些点；要求a为D的聚点，即任意$\\delta>0$都有$x\\in D$满足$0<|x-a|<\\delta$。a不必属于D。",
+    "intuition": "极限问的是附近的行为，不是站在中心点的值。聚点条件让“足够接近的其他点”确实存在，避免没有任何邻近输入时的空洞条件。",
+    "example": "$3$ 是 $\\mathbb R$ 以及 $\\mathbb R\\setminus\\{3\\}$的聚点。本例删去$x=3$的定义，或者只改$f(3)$，都不影响附近$x\\ne3$时的$2x+1$，所以去心极限仍可为7。相反3不是单点集合$\\{3\\}$的聚点。",
+    "proof_idea": "对R\\{3}，任意δ>0取x=3+δ/2即可在去心邻域内。对{3}，去心后没有任何点，因此该聚点要求不成立，不能按本课程约定宣称那里有唯一函数极限。",
+    "exercise": {
+      "question": "哪个定义域使3不是聚点？",
+      "options": [
+        "R",
+        "R\\{3}",
+        "{3}",
+        "(2,4)"
+      ],
+      "correct_index": 2,
+      "explanation": "单点集合{3}去掉中心后无点，因此3不是聚点；其他三个集合任意小的去心邻域都含定义域点。",
+      "dimension": "definition"
+    },
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "条件0<|x−3|<0.1允许x=3吗？允许3.05吗？",
+        "hint": "先检查不等式中的严格下界。",
+        "answer": "不允许x=3，因为距离为0；允许x=3.05，因为距离0.05位于(0,0.1)。"
+      },
+      {
+        "level": "challenge",
+        "question": "D={3+1/n:n为正整数}，3是否为聚点且属于D？",
+        "hint": "给定δ>0，选择1/n<δ。",
+        "answer": "3不属于D，但它是聚点：对任意δ>0，可取正整数n>1/δ，则x=3+1/n∈D且0<|x−3|<δ。"
+      }
+    ],
+    "illustration": {
+      "title": "输入 δ 带落在输出 ε 带内",
+      "caption": "示意 ε=1、δ=1/2。横轴单位与纵轴单位的像素比例不同，但标注对应真实坐标：x=3±1/2 时 2x+1=7±1。蓝色直线穿过 (3,7)；空心标记表示去心比较排除输入 x=3，不表示 f(3)未定义。对任意 ε>0，用 δ=ε/2 同样成立，图本身只显示其中一次选择。",
+      "alt": "y=2x+1 经过 (3,7)。x 在 2.5 到 3.5 的开区间且不等于3时，y 在6到8的开区间内。",
+      "elements": [
+        {
+          "type": "polygon",
+          "points": [
+            [
+              230,
+              45
+            ],
+            [
+              410,
+              45
+            ],
+            [
+              410,
+              310
+            ],
+            [
+              230,
+              310
+            ]
+          ],
+          "tone": "blue",
+          "fill": true
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              100,
+              90
+            ],
+            [
+              535,
+              90
+            ],
+            [
+              535,
+              270
+            ],
+            [
+              100,
+              270
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 545,
+          "y2": 310,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 100,
+          "y2": 40,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 200,
+          "y1": 300,
+          "x2": 440,
+          "y2": 60,
+          "tone": "blue",
+          "arrow": false,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 230,
+          "y1": 45,
+          "x2": 230,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 410,
+          "y1": 45,
+          "x2": 410,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 90,
+          "x2": 535,
+          "y2": 90,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 270,
+          "x2": 535,
+          "y2": 270,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "circle",
+          "cx": 320,
+          "cy": 180,
+          "r": 5,
+          "tone": "blue",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 169,
+          "text": "(3,7)",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 230,
+          "y": 335,
+          "text": "3−δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 335,
+          "text": "3",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 410,
+          "y": 335,
+          "text": "3+δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 94,
+          "text": "7+ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 274,
+          "text": "7−ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 498,
+          "y": 70,
+          "text": "y=2x+1",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 557,
+          "y": 315,
+          "text": "x",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 91,
+          "y": 32,
+          "text": "y",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "source": "curated_example",
+    "math_context": "讨论实函数 f:D⊆R→R 在实数 a 处的有限极限，要求 a 是 D 的聚点，即每个去心邻域都有 D 中的点；量词为∀ε>0 ∃δ>0 ∀x∈D，0<|x−a|<δ⇒|f(x)−L|<ε。δ可依赖ε、固定的函数与点，但不能依赖随后任取的x。主要例子 D=R，f(x)=2x+1，a=3，L=7，可选δ=ε/2；函数点值 f(a) 与极限不同，改动单点值不改变此去心极限。另行定义的变式函数、点与常数会在题目中明确。",
+    "source_notes": [
+      {
+        "title": "MIT OCW 18.100A, Lecture 13: Limits of Functions",
+        "url": "https://ocw.mit.edu/courses/18-100a-real-analysis-fall-2020/mit18_100af20_lec13.pdf",
+        "locator": "第1页 Definition 2、4：聚点与函数极限；第2页 Example 7、9：仿射函数与极限不等于点值。这里只链接讲义；卡片和练习为自行编写。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "ed_punctured_domain_guided",
+        "node_id": "ed_punctured_domain",
+        "kind": "guided",
+        "format": "open",
+        "question": "补聚点验证：任意δ>0，对D=R\\{3}选x=____。逐项说明为什么它是合法去心点。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "选一个小于δ的正偏移。",
+          "确认新点不等于中心。",
+          "检查距离的两个严格界。"
+        ],
+        "reference_answer": "可选x=3+δ/2。它不等于3，因此属于D；距离δ/2为正且小于δ，所以在去心邻域内。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "给出任意δ下的点"
+          },
+          {
+            "id": "reason_2",
+            "description": "检查定义域和去心条件"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "ed_punctured_domain_independent",
+        "node_id": "ed_punctured_domain",
+        "kind": "independent",
+        "format": "open",
+        "question": "独立题：定义域D=(3,4)，a=3。a是否为D的聚点？给一个对所有δ>0有效的点选择。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "同时满足距离小于δ和x小于4。",
+          "使用两个正界的最小值。",
+          "检查选点确实属于开区间。"
+        ],
+        "reference_answer": "是。取x=3+min(δ/2,1/2)，偏移为正、小于δ且小于1，所以x∈(3,4)并满足去心条件。3无需属于D。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "判断聚点且不混淆域内点"
+          },
+          {
+            "id": "reason_2",
+            "description": "给出同时满足两个界的选点"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "ed_limit_definition": {
+    "node_id": "ed_limit_definition",
+    "title": "函数极限的完整定义",
+    "definition": "设$f:D\\subseteq\\mathbb R\\to\\mathbb R$，a为D的聚点。$\\lim_{x\\to a}f(x)=L$是指：对每个$\\varepsilon>0$，存在$\\delta>0$，使任意$x\\in D$只要$0<|x-a|<\\delta$，就有$|f(x)-L|<\\varepsilon$。这里只讨论有限实数L。",
+    "intuition": "任意小的输出误差都能靠一个输入邻域统一控制，这才是“趋近”。条件排除中心点，所以极限不要求f(a)已定义，也不单独推出f(a)=L。",
+    "example": "本例$f(3)=7$且极限也是7，是因为附近函数关系可控制误差。变式$g(x)=2x+1\\ (x\\ne3)$、$g(3)=100$，去心极限仍为7，而点值变成100。",
+    "proof_idea": "极限与点值分开的理由来自去心前件：合格x均不等于a。若g与f在a附近所有x≠a处相同，两者对同样δ的输出不等式完全相同；修改单点不影响极限定义。",
+    "exercise": {
+      "question": "已知lim(x→3)g(x)=7，是否必有g(3)=7？",
+      "options": [
+        "必然，因为极限就是代入",
+        "不必；去心定义不检查x=3",
+        "只有线性映射才不必",
+        "只要δ=ε就必然"
+      ],
+      "correct_index": 1,
+      "explanation": "去心极限定义不比较g(3)；g(3)可以不同或未定义。另加在3连续的条件时才要求点值等于极限。",
+      "dimension": "definition"
+    },
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "将本例的a、L、D代入完整定义，保留量词。",
+        "hint": "分别固定a=3、L=7、D=R。",
+        "answer": "∀ε>0 ∃δ>0 ∀x∈R：0<|x−3|<δ⇒|2x+1−7|<ε；另有3是R的聚点。"
+      },
+      {
+        "level": "challenge",
+        "question": "若f:D→R在聚点a的去心邻域中恒等于c，说明极限为何为c。",
+        "hint": "输出误差在那段邻域内是多少？",
+        "answer": "设该邻域半径r>0，给定任意ε>0取δ=r；合格x使f(x)=c，所以|f(x)−c|=0<ε。聚点条件保障有邻近点；不需要规定f(a)。"
+      }
+    ],
+    "illustration": {
+      "title": "输入 δ 带落在输出 ε 带内",
+      "caption": "示意 ε=1、δ=1/2。横轴单位与纵轴单位的像素比例不同，但标注对应真实坐标：x=3±1/2 时 2x+1=7±1。蓝色直线穿过 (3,7)；空心标记表示去心比较排除输入 x=3，不表示 f(3)未定义。对任意 ε>0，用 δ=ε/2 同样成立，图本身只显示其中一次选择。",
+      "alt": "y=2x+1 经过 (3,7)。x 在 2.5 到 3.5 的开区间且不等于3时，y 在6到8的开区间内。",
+      "elements": [
+        {
+          "type": "polygon",
+          "points": [
+            [
+              230,
+              45
+            ],
+            [
+              410,
+              45
+            ],
+            [
+              410,
+              310
+            ],
+            [
+              230,
+              310
+            ]
+          ],
+          "tone": "blue",
+          "fill": true
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              100,
+              90
+            ],
+            [
+              535,
+              90
+            ],
+            [
+              535,
+              270
+            ],
+            [
+              100,
+              270
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 545,
+          "y2": 310,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 100,
+          "y2": 40,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 200,
+          "y1": 300,
+          "x2": 440,
+          "y2": 60,
+          "tone": "blue",
+          "arrow": false,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 230,
+          "y1": 45,
+          "x2": 230,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 410,
+          "y1": 45,
+          "x2": 410,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 90,
+          "x2": 535,
+          "y2": 90,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 270,
+          "x2": 535,
+          "y2": 270,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "circle",
+          "cx": 320,
+          "cy": 180,
+          "r": 5,
+          "tone": "blue",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 169,
+          "text": "(3,7)",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 230,
+          "y": 335,
+          "text": "3−δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 335,
+          "text": "3",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 410,
+          "y": 335,
+          "text": "3+δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 94,
+          "text": "7+ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 274,
+          "text": "7−ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 498,
+          "y": 70,
+          "text": "y=2x+1",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 557,
+          "y": 315,
+          "text": "x",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 91,
+          "y": 32,
+          "text": "y",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "source": "curated_example",
+    "math_context": "讨论实函数 f:D⊆R→R 在实数 a 处的有限极限，要求 a 是 D 的聚点，即每个去心邻域都有 D 中的点；量词为∀ε>0 ∃δ>0 ∀x∈D，0<|x−a|<δ⇒|f(x)−L|<ε。δ可依赖ε、固定的函数与点，但不能依赖随后任取的x。主要例子 D=R，f(x)=2x+1，a=3，L=7，可选δ=ε/2；函数点值 f(a) 与极限不同，改动单点值不改变此去心极限。另行定义的变式函数、点与常数会在题目中明确。",
+    "source_notes": [
+      {
+        "title": "MIT OCW 18.100A, Lecture 13: Limits of Functions",
+        "url": "https://ocw.mit.edu/courses/18-100a-real-analysis-fall-2020/mit18_100af20_lec13.pdf",
+        "locator": "第1页 Definition 2、4：聚点与函数极限；第2页 Example 7、9：仿射函数与极限不等于点值。这里只链接讲义；卡片和练习为自行编写。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "ed_limit_definition_guided",
+        "node_id": "ed_limit_definition",
+        "kind": "guided",
+        "format": "open",
+        "question": "补完整定义：除了∀ε∃δ与两个误差条件，还要对定义域和a写明哪些要求？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "函数只在其定义域上有值。",
+          "附近必须有不同于a的域内点。",
+          "中心点应排除。"
+        ],
+        "reference_answer": "要写f:D⊆R→R，a是D的聚点，并对任意x∈D验证；前件必须是0<|x−a|<δ，而非只写|x−a|<δ。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "写明定义域与聚点假设"
+          },
+          {
+            "id": "reason_2",
+            "description": "保持去心条件"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "ed_limit_definition_independent",
+        "node_id": "ed_limit_definition",
+        "kind": "independent",
+        "format": "open",
+        "question": "独立变式：g:R→R，g(x)=5(x≠1)，g(1)=−2。用定义证明x→1时极限为5。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先利用去心条件排除x=1。",
+          "其他点的函数值恒为5。",
+          "δ可选任意固定正值，此例误差为0。"
+        ],
+        "reference_answer": "给定任意ε>0，取δ=1；任意0<|x−1|<1使x≠1，因此g(x)=5，|g(x)−5|=0<ε。1是R的聚点；极限5与g(1)=−2不同。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "按正确量词验证零误差"
+          },
+          {
+            "id": "reason_2",
+            "description": "区分极限与点值"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "ed_delta_choice": {
+    "node_id": "ed_delta_choice",
+    "title": "怎样选 δ",
+    "definition": "选δ是构造一个正的输入距离界，使所有合格输入的输出误差都小于给定ε。本例误差为$2|x-3|$，所以$\\delta=\\varepsilon/2$足够；更小的正δ也足够，选择一般不唯一。",
+    "intuition": "可以先倒推：为了让2|x−3|<ε，要求|x−3|<ε/2。再把找到的δ放回正向证明。倒推是找策略，最终验证仍按量词顺序进行。",
+    "example": "若$\\varepsilon=0.3$，可取$\\delta=0.15$；取0.1也足够。不能任意取$\\delta=\\varepsilon$，因为邻域内某些输入会产生超过ε的输出误差。",
+    "proof_idea": "任意ε>0，δ=ε/2>0。当0<|x−3|<δ时，2|x−3|<2δ=ε。若取δ'=ε/4，则输出误差<ε/2<ε，也成立。",
+    "exercise": {
+      "question": "以下哪个规则对本例的每个ε>0都有效？",
+      "options": [
+        "δ=ε",
+        "δ=2ε",
+        "δ=0",
+        "δ=ε/2"
+      ],
+      "correct_index": 3,
+      "explanation": "δ=ε/2为正，且输入距离小于它可保证2倍距离小于ε；δ=0不允许，前两者可能让输出误差越界。",
+      "dimension": "application"
+    },
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "给出ε=0.08时两个不同的有效δ。",
+        "hint": "一个取ε/2，另一个更小。",
+        "answer": "δ=0.04和δ=0.02都有效；前者给误差<0.08，后者给误差<0.04<0.08。"
+      },
+      {
+        "level": "challenge",
+        "question": "证明δ=ε对本例不总有效，给一个满足前件但误差过大的x。",
+        "hint": "取输入距离为3ε/4。",
+        "answer": "给定ε>0，令x=3+3ε/4，则0<|x−3|<ε，但输出误差2·3ε/4=3ε/2>ε。"
+      }
+    ],
+    "illustration": {
+      "title": "输入 δ 带落在输出 ε 带内",
+      "caption": "示意 ε=1、δ=1/2。横轴单位与纵轴单位的像素比例不同，但标注对应真实坐标：x=3±1/2 时 2x+1=7±1。蓝色直线穿过 (3,7)；空心标记表示去心比较排除输入 x=3，不表示 f(3)未定义。对任意 ε>0，用 δ=ε/2 同样成立，图本身只显示其中一次选择。",
+      "alt": "y=2x+1 经过 (3,7)。x 在 2.5 到 3.5 的开区间且不等于3时，y 在6到8的开区间内。",
+      "elements": [
+        {
+          "type": "polygon",
+          "points": [
+            [
+              230,
+              45
+            ],
+            [
+              410,
+              45
+            ],
+            [
+              410,
+              310
+            ],
+            [
+              230,
+              310
+            ]
+          ],
+          "tone": "blue",
+          "fill": true
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              100,
+              90
+            ],
+            [
+              535,
+              90
+            ],
+            [
+              535,
+              270
+            ],
+            [
+              100,
+              270
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 545,
+          "y2": 310,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 100,
+          "y2": 40,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 200,
+          "y1": 300,
+          "x2": 440,
+          "y2": 60,
+          "tone": "blue",
+          "arrow": false,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 230,
+          "y1": 45,
+          "x2": 230,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 410,
+          "y1": 45,
+          "x2": 410,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 90,
+          "x2": 535,
+          "y2": 90,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 270,
+          "x2": 535,
+          "y2": 270,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "circle",
+          "cx": 320,
+          "cy": 180,
+          "r": 5,
+          "tone": "blue",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 169,
+          "text": "(3,7)",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 230,
+          "y": 335,
+          "text": "3−δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 335,
+          "text": "3",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 410,
+          "y": 335,
+          "text": "3+δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 94,
+          "text": "7+ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 274,
+          "text": "7−ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 498,
+          "y": 70,
+          "text": "y=2x+1",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 557,
+          "y": 315,
+          "text": "x",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 91,
+          "y": 32,
+          "text": "y",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "source": "curated_example",
+    "math_context": "讨论实函数 f:D⊆R→R 在实数 a 处的有限极限，要求 a 是 D 的聚点，即每个去心邻域都有 D 中的点；量词为∀ε>0 ∃δ>0 ∀x∈D，0<|x−a|<δ⇒|f(x)−L|<ε。δ可依赖ε、固定的函数与点，但不能依赖随后任取的x。主要例子 D=R，f(x)=2x+1，a=3，L=7，可选δ=ε/2；函数点值 f(a) 与极限不同，改动单点值不改变此去心极限。另行定义的变式函数、点与常数会在题目中明确。",
+    "source_notes": [
+      {
+        "title": "MIT OCW 18.100A, Lecture 13: Limits of Functions",
+        "url": "https://ocw.mit.edu/courses/18-100a-real-analysis-fall-2020/mit18_100af20_lec13.pdf",
+        "locator": "第1页 Definition 2、4：聚点与函数极限；第2页 Example 7、9：仿射函数与极限不等于点值。这里只链接讲义；卡片和练习为自行编写。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "ed_delta_choice_guided",
+        "node_id": "ed_delta_choice",
+        "kind": "guided",
+        "format": "open",
+        "question": "补选择：若希望2|x−3|<ε，只要限制|x−3|<____；于是可选δ=____。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "把目标不等式除以2。",
+          "δ要作为输入距离上界。",
+          "别忘记δ为正并且不依赖x。"
+        ],
+        "reference_answer": "两空均为ε/2。选δ=ε/2后，它为正且只依赖ε，能控制全部合格x。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "从输出误差反推输入界"
+          },
+          {
+            "id": "reason_2",
+            "description": "验证选择的合法性"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "ed_delta_choice_independent",
+        "node_id": "ed_delta_choice",
+        "kind": "independent",
+        "format": "open",
+        "question": "独立变式：h(x)=5x−2，a=1，L=3。给一个有效δ(ε)并验证。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先化简相对于3的输出误差。",
+          "绝对值外的放大系数是5。",
+          "选δ后用正向不等式验证。"
+        ],
+        "reference_answer": "|h(x)−3|=|5x−5|=5|x−1|。给定ε>0，取δ=ε/5>0；0<|x−1|<δ时输出误差<5δ=ε。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "正确化简变式误差"
+          },
+          {
+            "id": "reason_2",
+            "description": "选择并验证δ"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  },
+  "ed_limit_proof": {
+    "node_id": "ed_limit_proof",
+    "title": "将选择写成完整证明",
+    "definition": "ε–δ证明展示：任意$\\varepsilon>0$时确有一个$\\delta>0$，使所有满足去心条件的域内x都合格。候选极限在证明前已明确，不能用“代入”替代邻域误差估计。",
+    "intuition": "先研究函数误差关系，再给δ选择，最后逐项核对。证明的责任是覆盖任意ε与全体合格x，不是只画一段图或检查几个点。",
+    "example": "本例：任意$\\varepsilon>0$，取$\\delta=\\varepsilon/2$。任取$x\\in\\mathbb R$使$0<|x-3|<\\delta$，则$|2x+1-7|=2|x-3|<2\\delta=\\varepsilon$，所以$\\lim_{x\\to3}(2x+1)=7$。$3$ 是 $\\mathbb R$ 的聚点。",
+    "proof_idea": "证明每个环节对应定义的一项：任意ε给全称量词；δ=ε/2为正且先于x确定；任取x保留定义域与去心条件；误差等式及严格界完成蕴含。修改x=3单点值不会改变这条针对x≠3的证明。",
+    "exercise": {
+      "question": "证明中“任取x使0<|x−3|<δ”后，正确的误差链是哪一项？",
+      "options": [
+        "|2x+1−7|=2|x−3|<2δ=ε",
+        "|2x+1−7|=|x−3|<δ=ε",
+        "只需f(3)=7，因此没有误差",
+        "对一个选定的x算出误差后结束"
+      ],
+      "correct_index": 0,
+      "explanation": "输出误差放大为2倍，选δ=ε/2后严格界给<ε。等式f(3)=7和单点检查都无法替代任意邻域输入的估计。",
+      "dimension": "application"
+    },
+    "followup_exercises": [
+      {
+        "level": "basic",
+        "question": "用δ=ε/4而非ε/2重新完成本例证明。",
+        "hint": "更小δ给更强的误差界。",
+        "answer": "任意ε>0取δ=ε/4；合格x有|2x+1−7|=2|x−3|<2δ=ε/2<ε，同样得到极限7。"
+      },
+      {
+        "level": "challenge",
+        "question": "变式p(x)=x²，证明x→2时p(x)→4，尝试δ=min(1,ε/5)。",
+        "hint": "因式分解，先用|x−2|<1给|x+2|的界。",
+        "answer": "任意ε>0取δ=min(1,ε/5)>0。若0<|x−2|<δ，则1<x<3，|x+2|<5；所以|x²−4|=|x−2||x+2|<5|x−2|<5δ≤ε。故极限4。这里δ先给统一因子界，再控制误差。"
+      }
+    ],
+    "illustration": {
+      "title": "输入 δ 带落在输出 ε 带内",
+      "caption": "示意 ε=1、δ=1/2。横轴单位与纵轴单位的像素比例不同，但标注对应真实坐标：x=3±1/2 时 2x+1=7±1。蓝色直线穿过 (3,7)；空心标记表示去心比较排除输入 x=3，不表示 f(3)未定义。对任意 ε>0，用 δ=ε/2 同样成立，图本身只显示其中一次选择。",
+      "alt": "y=2x+1 经过 (3,7)。x 在 2.5 到 3.5 的开区间且不等于3时，y 在6到8的开区间内。",
+      "elements": [
+        {
+          "type": "polygon",
+          "points": [
+            [
+              230,
+              45
+            ],
+            [
+              410,
+              45
+            ],
+            [
+              410,
+              310
+            ],
+            [
+              230,
+              310
+            ]
+          ],
+          "tone": "blue",
+          "fill": true
+        },
+        {
+          "type": "polygon",
+          "points": [
+            [
+              100,
+              90
+            ],
+            [
+              535,
+              90
+            ],
+            [
+              535,
+              270
+            ],
+            [
+              100,
+              270
+            ]
+          ],
+          "tone": "green",
+          "fill": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 545,
+          "y2": 310,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 310,
+          "x2": 100,
+          "y2": 40,
+          "tone": "ink",
+          "arrow": true,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 200,
+          "y1": 300,
+          "x2": 440,
+          "y2": 60,
+          "tone": "blue",
+          "arrow": false,
+          "dashed": false
+        },
+        {
+          "type": "line",
+          "x1": 230,
+          "y1": 45,
+          "x2": 230,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 410,
+          "y1": 45,
+          "x2": 410,
+          "y2": 310,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 90,
+          "x2": 535,
+          "y2": 90,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "line",
+          "x1": 100,
+          "y1": 270,
+          "x2": 535,
+          "y2": 270,
+          "tone": "muted",
+          "arrow": false,
+          "dashed": true
+        },
+        {
+          "type": "circle",
+          "cx": 320,
+          "cy": 180,
+          "r": 5,
+          "tone": "blue",
+          "fill": false
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 169,
+          "text": "(3,7)",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 230,
+          "y": 335,
+          "text": "3−δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 320,
+          "y": 335,
+          "text": "3",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 410,
+          "y": 335,
+          "text": "3+δ",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 94,
+          "text": "7+ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 92,
+          "y": 274,
+          "text": "7−ε",
+          "tone": "ink",
+          "anchor": "end"
+        },
+        {
+          "type": "text",
+          "x": 498,
+          "y": 70,
+          "text": "y=2x+1",
+          "tone": "blue",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 557,
+          "y": 315,
+          "text": "x",
+          "tone": "ink",
+          "anchor": "middle"
+        },
+        {
+          "type": "text",
+          "x": 91,
+          "y": 32,
+          "text": "y",
+          "tone": "ink",
+          "anchor": "middle"
+        }
+      ]
+    },
+    "source": "curated_example",
+    "math_context": "讨论实函数 f:D⊆R→R 在实数 a 处的有限极限，要求 a 是 D 的聚点，即每个去心邻域都有 D 中的点；量词为∀ε>0 ∃δ>0 ∀x∈D，0<|x−a|<δ⇒|f(x)−L|<ε。δ可依赖ε、固定的函数与点，但不能依赖随后任取的x。主要例子 D=R，f(x)=2x+1，a=3，L=7，可选δ=ε/2；函数点值 f(a) 与极限不同，改动单点值不改变此去心极限。另行定义的变式函数、点与常数会在题目中明确。",
+    "source_notes": [
+      {
+        "title": "MIT OCW 18.100A, Lecture 13: Limits of Functions",
+        "url": "https://ocw.mit.edu/courses/18-100a-real-analysis-fall-2020/mit18_100af20_lec13.pdf",
+        "locator": "第1页 Definition 2、4：聚点与函数极限；第2页 Example 7、9：仿射函数与极限不等于点值。这里只链接讲义；卡片和练习为自行编写。",
+        "review_status": "curated"
+      }
+    ],
+    "learning_tasks": [
+      {
+        "id": "ed_limit_proof_guided",
+        "node_id": "ed_limit_proof",
+        "kind": "guided",
+        "format": "open",
+        "question": "补证明末句：任意ε>0取δ=ε/2；任意合格x有|f(x)−7|=2|x−3|<____=____。因此得出什么？",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "把输入距离换成δ的严格上界。",
+          "代入δ=ε/2。",
+          "用定义明确写出极限结论。"
+        ],
+        "reference_answer": "填2δ与ε；由于3是R聚点且已对任意ε及所有合格x完成定义要求，lim(x→3)f(x)=7。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "完成正确不等式链"
+          },
+          {
+            "id": "reason_2",
+            "description": "由量词与假设推出极限"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "ed_limit_proof_independent",
+        "node_id": "ed_limit_proof",
+        "kind": "independent",
+        "format": "open",
+        "question": "独立检验：解释证明本例极限时为何只写“f(3)=7”不足；指出实际需补的量词与估计。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "极限定义是否只检查中心点？",
+          "列出任意ε和任意邻域输入。",
+          "写出误差恒等式与δ选择。"
+        ],
+        "reference_answer": "点值没有控制附近输入，也没有给任意ε的邻域。需补：任意ε>0先取δ=ε/2>0，再任取0<|x−3|<δ的x∈R，验证|f(x)−7|=2|x−3|<ε。若f(3)改为其他数，这条去心证明仍成立。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "指出点值不能替代邻域控制"
+          },
+          {
+            "id": "reason_2",
+            "description": "给出缺失的量词和误差估计"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ]
+  }
+}

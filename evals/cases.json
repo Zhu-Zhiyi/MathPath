@@ -1,0 +1,1335 @@
+{
+  "schema_version": 1,
+  "dataset_name": "MathPath v0.2 初始数学内容评测",
+  "status": "人工编写案例；尚未进行模型教学效果实验",
+  "notes": [
+    "expected_concepts 是核查要点，不是唯一标准图或逐字匹配答案。",
+    "profiles 仅为模拟的自报状态，不是对真实用户能力的诊断。",
+    "acceptable_first_steps 仅列可接受示例，审阅者应接受理由充分的其他选择。",
+    "当前 build_graph 仅接数学文本；状态适配须在后续节点推荐/教学输出评审中单独验证。"
+  ],
+  "sources": [
+    {
+      "id": "hatcher",
+      "title": "Allen Hatcher, Algebraic Topology",
+      "url": "https://pi.math.cornell.edu/~hatcher/AT/AT.pdf",
+      "kind": "作者原始教材"
+    },
+    {
+      "id": "strang_subspaces",
+      "title": "Gilbert Strang, Introduction to Linear Algebra §3.5",
+      "url": "https://math.mit.edu/~gs/linearalgebra/ila6/ila6_3_5.pdf",
+      "kind": "作者公开教材节选"
+    },
+    {
+      "id": "strang_eigenvalues",
+      "title": "Gilbert Strang, Introduction to Linear Algebra §6.1",
+      "url": "https://math.mit.edu/~gs/linearalgebra/ila6/ila6_6_1.pdf",
+      "kind": "作者公开教材节选"
+    },
+    {
+      "id": "strang_least_squares",
+      "title": "MIT 18.06SC, Projection Matrices and Least Squares",
+      "url": "https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/pages/least-squares-determinants-and-eigenvalues/projection-matrices-and-least-squares/",
+      "kind": "课程原始讲义和视频"
+    },
+    {
+      "id": "mit_algebra",
+      "title": "MIT 18.701 Algebra I Student Notes, 2021",
+      "url": "https://ocw.mit.edu/courses/res-18-011-algebra-i-student-notes-fall-2021/mit18_701f21_full_lec_new.pdf",
+      "kind": "MIT 官方发布课程笔记"
+    }
+  ],
+  "rubrics": {
+    "coverage": {
+      "0": "缺少回应困惑的核心概念。",
+      "1": "覆盖部分核心概念但遗漏关键桥梁。",
+      "2": "必要概念齐全，容许合并节点、同义表达与有效替代路线。"
+    },
+    "mathematical_correctness": {
+      "0": "含会误导目标理解的实质数学错误。",
+      "1": "基本正确但条件、记号或直觉范围不够精确。",
+      "2": "数学陈述及必要条件准确，直觉不被当成一般定理。"
+    },
+    "dependency_quality": {
+      "0": "先修方向错误、核心依赖缺失或不可合理学习。",
+      "1": "总体可学但有冗余、粒度混乱或理由薄弱。",
+      "2": "教学先修方向、粒度与目标合理；不把定理假设机械拆成先修。"
+    },
+    "or_reasonableness": {
+      "0": "至少一条 OR 分支不能独立支持后续目标。",
+      "1": "分支大致可用但理由不清或存在人为凑出的替代。",
+      "2": "各分支均独立合理；没有必要时只用 AND 也得满分。"
+    },
+    "target_match": {
+      "0": "把目标变成其他主题或只列公式而偏离用户困惑。",
+      "1": "主题正确但没有充分回应困惑的具体性质。",
+      "2": "目标明确对应当前困惑、要求的深度与解释需求。"
+    },
+    "adaptation": {
+      "0": "有状态输入却明显重复已掌握内容或跳过缺失先修。",
+      "1": "部分考虑状态，但下一步或解释方式仍不够针对。",
+      "2": "节点、解释方式及深度与自报状态匹配；允许多种合理第一步。"
+    }
+  },
+  "cases": [
+    {
+      "id": "la_kernel_image",
+      "domain": "linear_algebra",
+      "title": "核与像的区别",
+      "goal": "区分线性映射的核和像",
+      "query": "我总把 ker(T) 和 im(T) 混在一起；它们都由 T 定义，为什么是两个空间？",
+      "expected_concepts": [
+        "线性映射的定义域和陪域",
+        "核是被映到零的输入集合",
+        "像是实际达到的输出集合",
+        "用一个具体映射同时计算核与像"
+      ],
+      "pitfalls": [
+        "把核放在陪域或把像放在定义域",
+        "声称核是所有零输出而不区分输入向量与零向量"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我会向量加法，尚不理解线性映射。",
+          "known_concepts": [
+            "向量加法",
+            "数乘"
+          ],
+          "familiar_but_unclear_concepts": [
+            "线性映射"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "线性映射的输入与输出",
+              "action": "concrete_example",
+              "rationale": "先用 R²→R 的 (x,y)↦x 定位两个集合所在的空间。"
+            }
+          ]
+        },
+        {
+          "id": "definition_known",
+          "self_report": "我知道线性映射、核、像的集合定义，但做题时仍混淆。",
+          "known_concepts": [
+            "线性映射",
+            "核的定义",
+            "像的定义"
+          ],
+          "familiar_but_unclear_concepts": [
+            "核与像的几何区别"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "同一映射的核和像",
+              "action": "concrete_example",
+              "rationale": "并排计算输入中的竖直轴与输出中的 R，回应混淆而不只复述定义。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "strang_subspaces",
+          "section": "§3.5；四个基本子空间"
+        }
+      ]
+    },
+    {
+      "id": "la_rank_nullity",
+      "domain": "linear_algebra",
+      "title": "秩与零度之和",
+      "goal": "理解有限维线性映射的秩零度定理",
+      "query": "为什么 rank(T)+dim ker(T)=dim V？我背得出公式却不理解为什么这样相加。",
+      "expected_concepts": [
+        "有限维线性映射 T:V→W",
+        "核的基扩充为 V 的基",
+        "扩充部分的像构成 im(T) 的基",
+        "维数计数"
+      ],
+      "pitfalls": [
+        "把右边写成陪域 W 的维数",
+        "遗漏有限维假设或把核与像当成 V 内总能直接相加的两个子空间"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我会求矩阵方程解，还没学过基和维数。",
+          "known_concepts": [
+            "矩阵方程",
+            "线性组合"
+          ],
+          "familiar_but_unclear_concepts": [
+            "基",
+            "维数"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "基与维数",
+              "action": "prerequisite_review",
+              "rationale": "先建立独立方向数量，避免公式中三个维数成为空符号。"
+            }
+          ]
+        },
+        {
+          "id": "basis_known",
+          "self_report": "我知道基、维数、核与像，希望看证明思路。",
+          "known_concepts": [
+            "基",
+            "维数",
+            "核",
+            "像"
+          ],
+          "familiar_but_unclear_concepts": [
+            "秩零度定理的证明"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "把核的基扩充为定义域的基",
+              "action": "proof_idea",
+              "rationale": "解释新增基向量的像为何恰好给出像空间的基。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "strang_subspaces",
+          "section": "§3.5；秩与零度"
+        }
+      ]
+    },
+    {
+      "id": "la_diagonalization",
+      "domain": "linear_algebra",
+      "title": "有特征值为何还不能对角化",
+      "goal": "理解 n×n 矩阵可对角化与特征向量基的关系",
+      "query": "一个实矩阵有实特征值，为什么仍可能不能在实数域上对角化？",
+      "expected_concepts": [
+        "选定实数域和 n×n 矩阵",
+        "对角化表示存在由特征向量组成的基",
+        "需要 n 个线性无关特征向量",
+        "非平凡 Jordan 型 2×2 例子"
+      ],
+      "pitfalls": [
+        "声称有实特征值就一定能在 R 上对角化",
+        "声称重复特征值一定不能对角化"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我会矩阵乘法，刚见到特征值的定义。",
+          "known_concepts": [
+            "矩阵乘法"
+          ],
+          "familiar_but_unclear_concepts": [
+            "特征值",
+            "特征向量"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "特征向量是被映成自身标量倍数的非零向量",
+              "action": "geometric_intuition",
+              "rationale": "先说明对角矩阵沿各基方向独立缩放。"
+            }
+          ]
+        },
+        {
+          "id": "eigen_known",
+          "self_report": "我会算特征值和特征空间，想看失败的例子。",
+          "known_concepts": [
+            "特征值",
+            "特征空间",
+            "线性无关"
+          ],
+          "familiar_but_unclear_concepts": [
+            "可对角化条件"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "矩阵 [[1,1],[0,1]] 的特征空间",
+              "action": "counterexample",
+              "rationale": "只有一个独立特征向量；同时说明单位矩阵的重复特征值不妨碍对角化。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "strang_eigenvalues",
+          "section": "§6.1；特征向量和重复特征值"
+        }
+      ]
+    },
+    {
+      "id": "la_least_squares",
+      "domain": "linear_algebra",
+      "title": "正规方程的几何意义",
+      "goal": "理解最小二乘为何满足 Aᵀ(Ax-b)=0",
+      "query": "实矩阵 A 的方程 Ax=b 无解时，为什么转去解 AᵀAx=Aᵀb？",
+      "expected_concepts": [
+        "最小化欧氏残差平方范数",
+        "Ax 位于 A 的列空间",
+        "最优残差与列空间正交",
+        "正规方程；解的唯一性需要满列秩"
+      ],
+      "pitfalls": [
+        "声称正规方程恢复了原来无解方程的精确解",
+        "无条件使用 (AᵀA)⁻¹ 或声称最小二乘解总是唯一"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我会点积，但不理解向子空间投影。",
+          "known_concepts": [
+            "实向量",
+            "点积",
+            "矩阵乘法"
+          ],
+          "familiar_but_unclear_concepts": [
+            "正交投影"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "把 b 投影到一条直线",
+              "action": "geometric_intuition",
+              "rationale": "先用最近点和垂直残差解释目标。"
+            }
+          ]
+        },
+        {
+          "id": "projection_known",
+          "self_report": "我理解正交投影，想知道 Aᵀ 为什么出现。",
+          "known_concepts": [
+            "列空间",
+            "点积",
+            "正交投影"
+          ],
+          "familiar_but_unclear_concepts": [
+            "正规方程"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "残差与每一列正交",
+              "action": "proof_idea",
+              "rationale": "将各列点积为零写成 Aᵀ(Ax-b)=0。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "strang_least_squares",
+          "section": "Projection Matrices and Least Squares"
+        }
+      ]
+    },
+    {
+      "id": "la_basis_change",
+      "domain": "linear_algebra",
+      "title": "换基为何是相似变换",
+      "goal": "理解同一线性算子换基时 B=P⁻¹AP",
+      "query": "P⁻¹ 和 P 为什么分别在 A 两边？我容易把公式顺序记反。",
+      "expected_concepts": [
+        "同一线性算子的两套基",
+        "P 将新坐标变成旧坐标",
+        "先转换输入坐标再应用 A",
+        "P⁻¹ 将输出转换回新坐标"
+      ],
+      "pitfalls": [
+        "不定义 P 的坐标方向却声称乘法顺序唯一",
+        "把相似变换当成任意两个同尺寸矩阵都相似"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我会矩阵乘法，但分不清向量与它的坐标。",
+          "known_concepts": [
+            "矩阵乘法"
+          ],
+          "familiar_but_unclear_concepts": [
+            "基",
+            "坐标向量"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "同一几何向量的两套坐标",
+              "action": "concrete_example",
+              "rationale": "先区别向量本身与表示它的数列。"
+            }
+          ]
+        },
+        {
+          "id": "coordinates_known",
+          "self_report": "我知道两套基及 P 的方向，主要是顺序困惑。",
+          "known_concepts": [
+            "基",
+            "坐标",
+            "复合映射",
+            "逆矩阵"
+          ],
+          "familiar_but_unclear_concepts": [
+            "换基公式顺序"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "从新坐标出发跟踪 P、A、P⁻¹",
+              "action": "proof_idea",
+              "rationale": "把公式解释成三个有方向的步骤。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "mit_algebra",
+          "section": "Lecture 9；Change of Basis"
+        }
+      ]
+    },
+    {
+      "id": "group_quotient_normal",
+      "domain": "groups",
+      "title": "商群为什么要求正规",
+      "goal": "理解商群中正规性保障陪集乘法良定义",
+      "query": "为什么不能对任意子群 H 定义 (aH)(bH)=abH？",
+      "expected_concepts": [
+        "左陪集与代表元",
+        "乘法独立于代表元的要求",
+        "正规子群的共轭不变性",
+        "非正规子群导致代表元依赖"
+      ],
+      "pitfalls": [
+        "声称任何子群的左陪集自然都构成商群",
+        "声称非正规子群不能定义陪集集合"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我懂群和子群，尚未理解陪集。",
+          "known_concepts": [
+            "群",
+            "子群"
+          ],
+          "familiar_but_unclear_concepts": [
+            "陪集"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "整数加法群中 3Z 的陪集",
+              "action": "concrete_example",
+              "rationale": "先建立把多个元素归为同一类的具体模型。"
+            }
+          ]
+        },
+        {
+          "id": "cosets_known",
+          "self_report": "我懂陪集和正规性的定义，想知道条件如何参与计算。",
+          "known_concepts": [
+            "陪集",
+            "正规子群"
+          ],
+          "familiar_but_unclear_concepts": [
+            "代表元无关性"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "替换 a、b 的代表元后比较结果",
+              "action": "proof_idea",
+              "rationale": "检查 an₁bn₂ 与 ab 的差别落在何处。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "mit_algebra",
+          "section": "Lecture 6；Quotient Groups"
+        }
+      ]
+    },
+    {
+      "id": "group_kernel_normal",
+      "domain": "groups",
+      "title": "同态核的正规性",
+      "goal": "理解群同态的核为什么是正规子群",
+      "query": "我知道 ker φ 是子群，但 gkg⁻¹ 为什么还是在核里？",
+      "expected_concepts": [
+        "群同态保持乘法和逆元",
+        "核是映到单位元的元素集合",
+        "检验共轭闭合",
+        "计算 φ(gkg⁻¹)"
+      ],
+      "pitfalls": [
+        "把群同态核解释为线性映射的零向量而不说明群记号",
+        "声称每个子群都是某个从原群出发的群同态的核"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我会群乘法，还不熟悉群同态。",
+          "known_concepts": [
+            "群",
+            "逆元"
+          ],
+          "familiar_but_unclear_concepts": [
+            "群同态"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "群同态怎样处理乘积",
+              "action": "prerequisite_review",
+              "rationale": "先明确把乘积映成像的乘积。"
+            }
+          ]
+        },
+        {
+          "id": "homomorphism_known",
+          "self_report": "我理解同态、核及正规定义，希望接上一步计算。",
+          "known_concepts": [
+            "群同态",
+            "核",
+            "正规子群"
+          ],
+          "familiar_but_unclear_concepts": [
+            "核的共轭不变性"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "计算 φ(g)φ(k)φ(g)⁻¹",
+              "action": "proof_idea",
+              "rationale": "将 φ(k)=e 代入即可回应当前疑问。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "mit_algebra",
+          "section": "Lectures 3、5–6；Homomorphisms and Normal Subgroups"
+        }
+      ]
+    },
+    {
+      "id": "group_first_isomorphism",
+      "domain": "groups",
+      "title": "第一同构定理为何取核",
+      "goal": "理解群第一同构定理的映射 [g]↦φ(g)",
+      "query": "为什么 G/ker φ 恰好同构于 im φ，而不是整个陪域？",
+      "expected_concepts": [
+        "同态的核与像",
+        "φ(a)=φ(b) 等价于 ab⁻¹ 落入核",
+        "商上的诱导映射良定义且单射",
+        "像作为目标保障满射"
+      ],
+      "pitfalls": [
+        "将 im φ 无条件替换成整个陪域",
+        "没有良定义检查就把代表元公式视为商上的映射"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我知道同态和核，还没理解商群。",
+          "known_concepts": [
+            "群同态",
+            "核",
+            "像"
+          ],
+          "familiar_but_unclear_concepts": [
+            "商群"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "同态把哪些输入压成同一个输出",
+              "action": "concrete_example",
+              "rationale": "用 Z→Z/3Z 的例子引入等价类。"
+            }
+          ]
+        },
+        {
+          "id": "quotient_known",
+          "self_report": "我理解商群，想知道那个同构如何构造。",
+          "known_concepts": [
+            "商群",
+            "同态",
+            "核",
+            "像"
+          ],
+          "familiar_but_unclear_concepts": [
+            "第一同构定理"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "构造 [g]↦φ(g) 并检查良定义",
+              "action": "proof_idea",
+              "rationale": "用同像等价于相差核元素连接取商与单射。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "mit_algebra",
+          "section": "Lecture 6；First Isomorphism Theorem"
+        }
+      ]
+    },
+    {
+      "id": "group_lagrange_converse",
+      "domain": "groups",
+      "title": "拉格朗日定理的逆命题",
+      "goal": "区分有限群拉格朗日定理与错误的逆命题",
+      "query": "|H| 整除 |G|，所以 |G| 的每个约数都一定是某个子群的阶吗？",
+      "expected_concepts": [
+        "有限群的子群与陪集",
+        "拉格朗日定理的单向蕴含",
+        "必要条件与充分条件",
+        "逆命题不普遍成立"
+      ],
+      "pitfalls": [
+        "声称每个有限群的每个阶约数都实现为子群阶",
+        "用循环群的例子证明所有有限群均满足逆命题"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我懂有限群和子群，还未理解陪集计数。",
+          "known_concepts": [
+            "有限群",
+            "子群"
+          ],
+          "familiar_but_unclear_concepts": [
+            "陪集",
+            "整除"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "等大小陪集如何划分群",
+              "action": "concrete_example",
+              "rationale": "先说明原定理的计数原因和方向。"
+            }
+          ]
+        },
+        {
+          "id": "theorem_known",
+          "self_report": "我已经懂陪集证明，正在判断逆命题。",
+          "known_concepts": [
+            "陪集",
+            "拉格朗日定理",
+            "必要条件"
+          ],
+          "familiar_but_unclear_concepts": [
+            "逆命题"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "一个有限群没有某个约数阶子群的反例",
+              "action": "counterexample",
+              "rationale": "可用 A₄ 没有阶 6 子群并给出证明；也接受其他正确且解释完整的反例。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "mit_algebra",
+          "section": "Lectures 4–5；Lagrange's Theorem；Lecture 22 Example 22.2"
+        }
+      ]
+    },
+    {
+      "id": "group_coset_subgroup",
+      "domain": "groups",
+      "title": "陪集是不是子群",
+      "goal": "理解左陪集 gH 何时本身为子群",
+      "query": "陪集只是把 H 平移一下，为什么 gH 通常不是子群？",
+      "expected_concepts": [
+        "子群必须含单位元",
+        "e∈gH 等价于 g∈H",
+        "g∈H 时 gH=H",
+        "具体非单位陪集例子"
+      ],
+      "pitfalls": [
+        "声称每个陪集都是子群",
+        "声称 g≠e 就能推出 gH≠H，而忽略 g 可以是 H 中的非单位元"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我理解集合和群，还不熟子群判定。",
+          "known_concepts": [
+            "群",
+            "单位元"
+          ],
+          "familiar_but_unclear_concepts": [
+            "子群判定"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "子群必须包含单位元",
+              "action": "prerequisite_review",
+              "rationale": "先检查成为子群的最基本条件。"
+            }
+          ]
+        },
+        {
+          "id": "coset_known",
+          "self_report": "我会算陪集和检验子群，想看一个快速判定。",
+          "known_concepts": [
+            "左陪集",
+            "子群",
+            "逆元"
+          ],
+          "familiar_but_unclear_concepts": [
+            "陪集是否为子群"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "判断 e 是否属于 gH",
+              "action": "micro_exercise",
+              "rationale": "由 e=gh 推出 g∈H，并回到 gH=H。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "mit_algebra",
+          "section": "Lecture 4；Cosets"
+        }
+      ]
+    },
+    {
+      "id": "homology_quotient",
+      "domain": "homology",
+      "title": "同调为什么要取商",
+      "goal": "理解 H_n=Z_n/B_n 中取商的作用",
+      "query": "我背得出 ker ∂/im ∂，但不知道为什么要把边界除掉。",
+      "expected_concepts": [
+        "循环 Z_n 与边界 B_n",
+        "∂²=0 保障 B_n⊆Z_n",
+        "相差一个边界的循环代表同一类",
+        "边界代表零同调类"
+      ],
+      "pitfalls": [
+        "把取商描述为从循环集合中直接删掉边界元素",
+        "声称所有非零同调类都可一一对应直观可数的洞而忽略系数和挠现象"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我知道商群，但不理解链和边界算子。",
+          "known_concepts": [
+            "商群"
+          ],
+          "familiar_but_unclear_concepts": [
+            "链",
+            "边界算子"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "一个填实三角形的边界",
+              "action": "concrete_example",
+              "rationale": "先区分二维填充链与一维边界循环。"
+            }
+          ]
+        },
+        {
+          "id": "formula_known",
+          "self_report": "我懂链、循环、边界和商群定义，缺少几何动机。",
+          "known_concepts": [
+            "链",
+            "边界算子",
+            "循环",
+            "边界",
+            "商群"
+          ],
+          "familiar_but_unclear_concepts": [
+            "取商的几何意义"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "填得上的循环成为零类",
+              "action": "geometric_intuition",
+              "rationale": "直接回应为何识别边界，并解释相差边界的两个代表元。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "§2.1；Simplicial and Singular Homology"
+        }
+      ]
+    },
+    {
+      "id": "homology_boundary_squared",
+      "domain": "homology",
+      "title": "边界的边界为什么为零",
+      "goal": "理解有向单形边界算子的 ∂²=0",
+      "query": "∂²=0 是额外规定，还是有向单形边界公式自然算出来的？",
+      "expected_concepts": [
+        "有向单形与带符号的面",
+        "单形边界的交替求和公式",
+        "余维二面出现两次且符号相反",
+        "该恒等式是链复形条件"
+      ],
+      "pitfalls": [
+        "声称各余维二面都单独等于零而非成对抵消",
+        "省略符号后仍声称一般整数系数中全部相加为零"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我知道三角形和线段，尚不了解链的方向与系数。",
+          "known_concepts": [
+            "三角形",
+            "线段"
+          ],
+          "familiar_but_unclear_concepts": [
+            "有向链",
+            "负系数"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "有向三角形及其三条有向边",
+              "action": "concrete_example",
+              "rationale": "先建立带符号的边界记号。"
+            }
+          ]
+        },
+        {
+          "id": "formula_known",
+          "self_report": "我会有向单形边界公式，想看为何平方为零。",
+          "known_concepts": [
+            "有向单形",
+            "边界交替求和"
+          ],
+          "familiar_but_unclear_concepts": [
+            "余维二面抵消"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "展开一个三角形的两次边界",
+              "action": "proof_idea",
+              "rationale": "先观察顶点的相反符号，再推广到一般余维二面。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "§2.1；单形边界算子"
+        }
+      ]
+    },
+    {
+      "id": "homology_circle_disk",
+      "domain": "homology",
+      "title": "圆与圆盘的一阶同调",
+      "goal": "理解整数系数下 H₁(S¹)≅Z 而 H₁(D²)=0",
+      "query": "圆周和填实圆盘都有一圈边界，为什么一阶同调不同？",
+      "expected_concepts": [
+        "空间内部允许使用的链",
+        "循环是否在该空间内成为边界",
+        "S¹ 的绕行循环",
+        "D² 的填充及可缩性"
+      ],
+      "pitfalls": [
+        "在 S¹ 的链复形中使用位于 D² 内部的填充而声称该循环是边界",
+        "把几何图形的外边缘直接等同于它的一阶同调群"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我知道圆与圆盘，还不理解同调中的边界。",
+          "known_concepts": [
+            "圆周",
+            "圆盘"
+          ],
+          "familiar_but_unclear_concepts": [
+            "循环",
+            "边界"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "填充链是否属于正在研究的空间",
+              "action": "concrete_example",
+              "rationale": "用空圈与填实圈区分可用的二维链。"
+            }
+          ]
+        },
+        {
+          "id": "homology_known",
+          "self_report": "我懂同调定义和整数系数，想解释这个具体差别。",
+          "known_concepts": [
+            "链复形",
+            "循环",
+            "边界",
+            "商群"
+          ],
+          "familiar_but_unclear_concepts": [
+            "圆周与圆盘的 H₁"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "在 D² 中填充而在 S¹ 中不能这样填充",
+              "action": "geometric_intuition",
+              "rationale": "突出空间不同导致可用填充不同；计算可采用胞腔链或已知可缩性。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "§2.1–2.2；基本计算与胞腔同调"
+        }
+      ]
+    },
+    {
+      "id": "homology_h0",
+      "domain": "homology",
+      "title": "零阶同调记录什么",
+      "goal": "理解奇异整数同调 H₀(X) 自由生成于道路分支",
+      "query": "为什么 H₀ 会把同一道路分支中的不同点看成一样？",
+      "expected_concepts": [
+        "零链是点的形式整数和",
+        "奇异 1-单形是一条路径",
+        "路径边界为终点减起点",
+        "H₀ 自由生成于道路分支"
+      ],
+      "pitfalls": [
+        "对任意拓扑空间把道路分支无条件替换成连通分支",
+        "声称两个点在 H₀ 中相同必须是同一个点"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我会整数形式和，不理解奇异 1-单形。",
+          "known_concepts": [
+            "整数线性组合"
+          ],
+          "familiar_but_unclear_concepts": [
+            "奇异单形",
+            "路径"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "一条路径的边界",
+              "action": "concrete_example",
+              "rationale": "用终点减起点解释两点之差为何是边界。"
+            }
+          ]
+        },
+        {
+          "id": "chain_known",
+          "self_report": "我懂零链、路径边界和取商，希望连接到道路分支。",
+          "known_concepts": [
+            "零链",
+            "奇异 1-单形",
+            "边界",
+            "商群"
+          ],
+          "familiar_but_unclear_concepts": [
+            "H₀ 的道路分支解释"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "同一道路分支中的点相差一个边界",
+              "action": "proof_idea",
+              "rationale": "再说明每个道路分支保留一个独立生成元。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "§2.1；H₀ 的计算"
+        }
+      ]
+    },
+    {
+      "id": "homology_chain_map",
+      "domain": "homology",
+      "title": "链映射如何诱导同调映射",
+      "goal": "理解 f∂=∂f 保障 [z]↦[f(z)] 良定义",
+      "query": "把循环映过去我能理解，但为什么换一个循环代表元不会改变同调类？",
+      "expected_concepts": [
+        "链映射与边界算子交换",
+        "链映射将循环送到循环",
+        "链映射将边界送到边界",
+        "代表元相差边界时像也相差边界"
+      ],
+      "pitfalls": [
+        "任意逐维群同态都自动诱导同调映射",
+        "只验证循环映成循环却遗漏边界映成边界与代表元独立性"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我懂群同态和商群，还不熟悉链映射。",
+          "known_concepts": [
+            "群同态",
+            "商群"
+          ],
+          "familiar_but_unclear_concepts": [
+            "链映射"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "交换关系 f∂=∂f 的含义",
+              "action": "prerequisite_review",
+              "rationale": "先区分各维映射并说明与边界兼容的条件。"
+            }
+          ]
+        },
+        {
+          "id": "chainmap_known",
+          "self_report": "我懂链映射和同调，疑问是换代表元的那一步。",
+          "known_concepts": [
+            "链映射",
+            "循环",
+            "边界",
+            "同调类"
+          ],
+          "familiar_but_unclear_concepts": [
+            "同调映射的良定义"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "由 z'=z+∂c 推出 f(z')=f(z)+∂f(c)",
+              "action": "proof_idea",
+              "rationale": "直接检查两个像代表同一同调类。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "§2.1；链映射与诱导同调映射"
+        }
+      ]
+    },
+    {
+      "id": "topology_homotopy_homeomorphism",
+      "domain": "topology",
+      "title": "同伦等价与同胚",
+      "goal": "区分同伦等价和同胚",
+      "query": "线段能缩成点，所以线段和一个点是不是同胚？",
+      "expected_concepts": [
+        "同胚是具有连续逆的双射",
+        "同伦是映射的连续变形",
+        "同伦等价允许复合只同伦于恒等",
+        "线段与点同伦等价却不是同胚"
+      ],
+      "pitfalls": [
+        "将能连续收缩直接认作存在同胚",
+        "声称同伦等价必定保留点的数量"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我知道连续函数，尚不了解同胚的完整定义。",
+          "known_concepts": [
+            "连续函数",
+            "双射"
+          ],
+          "familiar_but_unclear_concepts": [
+            "同胚"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "线段与点之间不可能有双射",
+              "action": "counterexample",
+              "rationale": "先否定当前同胚结论，再引入弱一些的同伦等价。"
+            }
+          ]
+        },
+        {
+          "id": "definitions_known",
+          "self_report": "我懂同胚和同伦定义，希望看两种等价的差别。",
+          "known_concepts": [
+            "同胚",
+            "同伦",
+            "恒等映射"
+          ],
+          "familiar_but_unclear_concepts": [
+            "同伦等价"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "收缩映射与包含映射的两个复合",
+              "action": "concrete_example",
+              "rationale": "一个复合等于恒等，另一个只与恒等同伦。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "Chapter 0；Homotopy and Homotopy Type"
+        }
+      ]
+    },
+    {
+      "id": "topology_basepoint",
+      "domain": "topology",
+      "title": "基本群为何要基点",
+      "goal": "理解基本群的基点及换基点路径的作用",
+      "query": "同一个道路连通空间，换个基点为什么还要选一条连接路径？",
+      "expected_concepts": [
+        "基本群由固定基点的环路同伦类构成",
+        "路径共轭用于搬运环路",
+        "换基点给出群同构",
+        "所选路径不同可导致不同的同构"
+      ],
+      "pitfalls": [
+        "声称基本群完全不依赖基点因而无需任何换基点说明",
+        "把道路连通下存在同构夸大成总有与路径选择无关的典范同构"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我知道路径，尚不清楚环路同伦为什么固定端点。",
+          "known_concepts": [
+            "路径",
+            "环路"
+          ],
+          "familiar_but_unclear_concepts": [
+            "相对端点同伦",
+            "基本群"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "基点环路怎样复合",
+              "action": "concrete_example",
+              "rationale": "先解释所有环路必须在同一地点起终才能拼接。"
+            }
+          ]
+        },
+        {
+          "id": "pi1_known",
+          "self_report": "我懂基本群定义和路径复合，想看基点搬运。",
+          "known_concepts": [
+            "基本群",
+            "路径复合",
+            "逆路径"
+          ],
+          "familiar_but_unclear_concepts": [
+            "换基点同构"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "沿连接路径走去、绕环路、再走回",
+              "action": "geometric_intuition",
+              "rationale": "明确路径方向约定，并指出不同连接路径的影响。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "§1.1；Paths and Homotopy"
+        }
+      ]
+    },
+    {
+      "id": "topology_circle_pi1",
+      "domain": "topology",
+      "title": "圆的基本群为何是整数",
+      "goal": "理解 π₁(S¹)≅Z 的绕数解释",
+      "query": "环路能连续变形，为什么绕圆的整数圈数不能随便变掉？",
+      "expected_concepts": [
+        "固定基点的环路同伦",
+        "实直线到圆的覆盖 t↦exp(2πit)",
+        "从 0 提升基点为 1 的圆周环路，终点是整数",
+        "同伦保持终点整数；相同终点的提升可同伦；环路复合对应整数相加"
+      ],
+      "pitfalls": [
+        "把任意环路几何长度当成同伦不变量",
+        "仅凭图像声称所有圈数相同的环路都同伦而不给理由"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我知道圆与连续路径，还不懂同伦固定基点。",
+          "known_concepts": [
+            "圆周",
+            "连续路径"
+          ],
+          "familiar_but_unclear_concepts": [
+            "基点环路",
+            "环路同伦"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "拉紧或拉松环路仍需固定起终点",
+              "action": "geometric_intuition",
+              "rationale": "先确定允许的连续变形种类。"
+            }
+          ]
+        },
+        {
+          "id": "pi1_known",
+          "self_report": "我懂基本群和覆盖的局部定义，想证明绕数不变。",
+          "known_concepts": [
+            "基本群",
+            "覆盖映射",
+            "路径提升"
+          ],
+          "familiar_but_unclear_concepts": [
+            "圆的绕数"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "提升到 R 后观察终点整数",
+              "action": "proof_idea",
+              "rationale": "用提升和同伦说明整数终点无法连续跳变。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "§1.1；The Fundamental Group of the Circle"
+        }
+      ]
+    },
+    {
+      "id": "topology_covering_local",
+      "domain": "topology",
+      "title": "覆盖为何只要求局部分层",
+      "goal": "理解覆盖的 evenly covered 条件与全局乘积的区别",
+      "query": "每个小邻域都像多张复制，为什么覆盖空间不一定是 X×离散集？",
+      "expected_concepts": [
+        "均匀覆盖邻域及各片的同胚",
+        "局部平凡不等于全局乘积",
+        "圆到圆的二重覆盖",
+        "沿环路提升可能交换纤维点"
+      ],
+      "pitfalls": [
+        "声称每个覆盖都全局等于底空间与纤维的乘积",
+        "忽略邻域原像应是彼此不交开片的并集"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我懂连续映射与同胚，还不了解覆盖定义。",
+          "known_concepts": [
+            "连续映射",
+            "同胚"
+          ],
+          "familiar_but_unclear_concepts": [
+            "覆盖映射"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "圆的二重覆盖在小弧上的原像",
+              "action": "concrete_example",
+              "rationale": "用不交的两段弧解释局部条件。"
+            }
+          ]
+        },
+        {
+          "id": "covering_known",
+          "self_report": "我懂覆盖和路径提升，主要困惑局部为何不能拼成乘积。",
+          "known_concepts": [
+            "覆盖映射",
+            "路径提升",
+            "纤维"
+          ],
+          "familiar_but_unclear_concepts": [
+            "局部与全局平凡"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "绕一圈后提升路径停在另一张片上",
+              "action": "concrete_example",
+              "rationale": "以非平凡二重圆覆盖回应全局片无法固定标号。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "§1.3；Covering Spaces and Lifting Properties"
+        }
+      ]
+    },
+    {
+      "id": "topology_regular_covering",
+      "domain": "topology",
+      "title": "正规覆盖对应正规子群",
+      "goal": "理解连通覆盖正规性与基本群正规子群的联系",
+      "query": "我懂正规子群，但不明白 deck transformation 为什么能说明覆盖的正规性。",
+      "expected_concepts": [
+        "道路连通、局部道路连通且半局部单连通的底空间与连通覆盖",
+        "提升环路作用在纤维上",
+        "稳定子群为覆盖诱导的基本群子群",
+        "deck 变换在纤维上传递与该子群正规等价"
+      ],
+      "pitfalls": [
+        "未说明适用假设就声称任意空间的所有覆盖都由基本群子群分类",
+        "把连通覆盖自动认作正规覆盖或把 deck 群总写成 G/H 而无正规假设"
+      ],
+      "profiles": [
+        {
+          "id": "beginner",
+          "self_report": "我懂基本群和正规子群，只知道覆盖的定义。",
+          "known_concepts": [
+            "基本群",
+            "正规子群",
+            "覆盖映射"
+          ],
+          "familiar_but_unclear_concepts": [
+            "路径提升",
+            "deck 变换"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "deck 变换在覆盖图中的作用",
+              "action": "concrete_example",
+              "rationale": "先说明它保留投影并置换同一纤维的点。"
+            }
+          ]
+        },
+        {
+          "id": "action_known",
+          "self_report": "我懂路径提升、deck 变换和群作用，想连接到正规性。",
+          "known_concepts": [
+            "基本群",
+            "正规子群",
+            "路径提升",
+            "deck 变换",
+            "群作用"
+          ],
+          "familiar_but_unclear_concepts": [
+            "正规覆盖对应"
+          ],
+          "acceptable_first_steps": [
+            {
+              "focus": "纤维点稳定子及其共轭关系",
+              "action": "proof_idea",
+              "rationale": "解释正规性如何让不同纤维点对应同一个子群，并连接 deck 传递性。"
+            }
+          ]
+        }
+      ],
+      "source_sections": [
+        {
+          "source_id": "hatcher",
+          "section": "§1.3；Classification of Covering Spaces；Proposition 1.39"
+        }
+      ]
+    }
+  ]
+}

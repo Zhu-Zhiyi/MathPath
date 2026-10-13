@@ -1,0 +1,243 @@
+{
+  "target_id": "rn_rank_nullity",
+  "nodes": [
+    {
+      "id": "rn_linear_map",
+      "label": "识别线性映射与矩阵表示",
+      "prerequisite_sets": [],
+      "rationale": "核与像都由同一个线性映射定义，先明确输入、输出和线性性。",
+      "required_abilities": [
+        "计算 T(x,y,z)",
+        "检查加法与数乘相容"
+      ],
+      "branch_outcomes": [],
+      "required_dimensions": []
+    },
+    {
+      "id": "rn_basis_dimension",
+      "label": "用基与唯一坐标理解维数",
+      "prerequisite_sets": [],
+      "rationale": "维数统计基向量个数；需要先区分张成和线性无关。",
+      "required_abilities": [
+        "区分张成与线性无关",
+        "用基计数维数"
+      ],
+      "branch_outcomes": [],
+      "required_dimensions": []
+    },
+    {
+      "id": "rn_kernel",
+      "label": "求核并解释被映到零的方向",
+      "prerequisite_sets": [
+        [
+          "rn_linear_map"
+        ]
+      ],
+      "rationale": "核来自齐次方程 T(v)=0，必须先知道映射规则。",
+      "required_abilities": [
+        "解齐次方程并写核基",
+        "区分零向量与非零核向量"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点；掌握选项是用户自报，题目作答可作为另行核对的证据。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "rn_image_rank",
+      "label": "求像空间并解释秩",
+      "prerequisite_sets": [
+        [
+          "rn_linear_map",
+          "rn_basis_dimension"
+        ]
+      ],
+      "rationale": "像由基向量的像张成；秩统计像空间基而非矩阵列数。",
+      "required_abilities": [
+        "用矩阵列求像",
+        "从线性无关像向量计算秩"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点；掌握选项是用户自报，题目作答可作为另行核对的证据。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "rn_basis_extension",
+      "label": "把核基扩充为定义域的基",
+      "prerequisite_sets": [
+        [
+          "rn_basis_dimension",
+          "rn_kernel"
+        ]
+      ],
+      "rationale": "证明需要核基与整个定义域基之间的关系，不能假设核基张成定义域。",
+      "required_abilities": [
+        "说明有限维独立组可扩充为基",
+        "验证具体扩充基"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点；掌握选项是用户自报，题目作答可作为另行核对的证据。"
+      ],
+      "required_dimensions": []
+    },
+    {
+      "id": "rn_rank_nullity",
+      "label": "证明有限维秩—零度定理",
+      "prerequisite_sets": [
+        [
+          "rn_image_rank",
+          "rn_basis_extension"
+        ]
+      ],
+      "rationale": "核基扩充后的剩余向量的像构成像基，两部分计数得到维数公式。",
+      "required_abilities": [
+        "分别证明剩余像向量张成与独立",
+        "说明有限维假设和计数公式"
+      ],
+      "branch_outcomes": [
+        "这组先修共同支持本节点；掌握选项是用户自报，题目作答可作为另行核对的证据。"
+      ],
+      "required_dimensions": []
+    }
+  ],
+  "study_plan": {
+    "mode": "proof",
+    "objective": "能够求具体线性映射的核和像，并以核基扩充证明有限维秩—零度定理。",
+    "criteria": [
+      "分别求出核基、像基并计数零度与秩",
+      "解释扩充核基后剩余向量的像为何张成且独立",
+      "区分定义域维数、陪域维数和像的维数，独立核对变式"
+    ],
+    "math_context": "所有向量空间及线性映射都在实数域上；定理的定义域 V 有限维，W 可以是任意实向量空间。具体例子使用列向量、标准基和 T:R³→R²，T(x,y,z)=(x+z,y+z)，矩阵 A=[[1,0,1],[0,1,1]]。ker T 是定义域的子空间，im T 是陪域的子空间；nullity T=dim ker T，rank T=dim im T。k=(-1,-1,1)，e₁=(1,0,0)，e₂=(0,1,0)。核基扩充后剩余向量的像构成像空间基；不要求核与像处于同一空间或互相正交。",
+    "diagnostics": [
+      {
+        "id": "rn_linear_map_diagnostic",
+        "node_id": "rn_linear_map",
+        "kind": "diagnostic",
+        "format": "choice",
+        "question": "对 T(x,y,z)=(x+z,y+z)，T(1,2,−1) 等于什么？不会可跳过。",
+        "options": [
+          "(1,2)",
+          "(0,1)",
+          "(2,3)",
+          "(−1,−2)"
+        ],
+        "correct_index": 1,
+        "hints": [
+          "分别计算两个输出坐标。",
+          "第一个是 x+z，第二个是 y+z。",
+          "1+(−1)=0，2+(−1)=1。"
+        ],
+        "reference_answer": "T(1,2,−1)=(0,1)，将三个坐标代入规则即可。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "按给定映射计算两个坐标"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "rn_basis_dimension_diagnostic",
+        "node_id": "rn_basis_dimension",
+        "kind": "diagnostic",
+        "format": "open",
+        "question": "R² 中 (1,0)、(0,1)、(1,1) 张成整个空间。它们是一个基吗？说明原因。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "基要求张成且线性无关。",
+          "试着用前两个向量表示第三个。",
+          "找一个非零系数的线性组合等于零。"
+        ],
+        "reference_answer": "不是基：(1,1)=(1,0)+(0,1)，三个向量线性相关。前两个向量本身组成一个基，所以 dim R²=2。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "区分张成和线性无关"
+          },
+          {
+            "id": "reason_2",
+            "description": "给出相关关系"
+          }
+        ],
+        "dimension": "definition",
+        "source": "curated_example"
+      }
+    ],
+    "final_tasks": [
+      {
+        "id": "rn_rank_nullity_final_proof",
+        "node_id": "rn_rank_nullity",
+        "kind": "final",
+        "format": "open",
+        "question": "设 T:V→W 为实线性映射且 dim V=n<∞。取核基 u₁,…,uₖ，并扩充为 V 的基 u₁,…,uₖ,v₁,…,vₙ₋ₖ。独立证明 T(v₁),…,T(vₙ₋ₖ) 是 im T 的基，推出秩—零度公式。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先证明张成，再证明独立，不要把二者混在一起。",
+          "从像中的元素取原像，并在扩充基下展开。",
+          "独立性使用：映成零的组合属于核，再使用整个基的独立性。"
+        ],
+        "reference_answer": "张成：任意 w∈im T 可写 w=T(v)，将 v 按扩充基展开，核基项的像为零，故 w 是 T(vⱼ) 的线性组合。独立：若ΣbⱼT(vⱼ)=0，则Σbⱼvⱼ∈ker T，可写成Σaᵢuᵢ；移项后是扩充基的零线性组合，所以所有 bⱼ=0。于是 rank T=n−k、nullity T=k，dim V=rank T+nullity T。零核或零像时空向量组同样满足相应基结论。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "证明剩余像向量张成像空间"
+          },
+          {
+            "id": "reason_2",
+            "description": "证明剩余像向量线性无关"
+          },
+          {
+            "id": "reason_3",
+            "description": "明确有限维和维数计数"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      },
+      {
+        "id": "rn_rank_nullity_final_transfer",
+        "node_id": "rn_rank_nullity",
+        "kind": "final",
+        "format": "open",
+        "question": "变式：S:R⁴→R²，S(a,b,c,d)=(a+c,b+d)。独立给出核的一组基、像的一组基、秩和零度，并核对公式。",
+        "options": [],
+        "correct_index": null,
+        "hints": [
+          "先解两个齐次方程。",
+          "把 c、d 分别当自由变量。",
+          "像是否覆盖 R²，可以找标准基的原像。"
+        ],
+        "reference_answer": "核满足 a=−c、b=−d，所以 ker S=span{(−1,0,1,0),(0,−1,0,1)}；两向量独立，零度2。S(1,0,0,0)=(1,0)，S(0,1,0,0)=(0,1)，故像为 R²，秩2；4=2+2。",
+        "rubric": [
+          {
+            "id": "reason_1",
+            "description": "给出核基且验证独立"
+          },
+          {
+            "id": "reason_2",
+            "description": "给出像基"
+          },
+          {
+            "id": "reason_3",
+            "description": "核对定义域维数等于秩加零度"
+          }
+        ],
+        "dimension": "application",
+        "source": "curated_example"
+      }
+    ],
+    "source_notes": [
+      {
+        "title": "Sheldon Axler, Linear Algebra Done Right, 4th ed.",
+        "url": "https://linear.axler.net/LADR4e.pdf",
+        "locator": "§3B Null Spaces and Ranges；Fundamental Theorem of Linear Maps（3.21，印刷页62–63）；基扩充见2.32。这里只链接教材；卡片、例子与练习由 MathPath 自行编写。",
+        "review_status": "curated"
+      }
+    ]
+  }
+}
