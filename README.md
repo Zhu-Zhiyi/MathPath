@@ -12,6 +12,8 @@ MathPath 是面向数学学习的 Windows 原型：输入一个具体目标或�
 
 ## Windows 安装与便携运行
 
+**[下载 Windows 软件包](https://github.com/Zhu-Zhiyi/MathPath/releases/latest)**：打开发行页面，下载 `MathPath-v0.5.0-Windows.zip` 并完整解压，再阅读 `先看这里.txt`。
+
 发行文件夹包含安装版 `MathPath-setup-0.5.0-windows-x64.exe`、便携版 `MathPath-desktop-0.5.0-windows-x64.exe`、使用说明和第三方许可；独立发行检查报告提供软件验证证据。
 
 - 安装版：双击安装程序，安装到当前用户的 `%LOCALAPPDATA%\Programs\MathPath`，创建桌面与开始菜单快捷方式，无需管理员权限。
