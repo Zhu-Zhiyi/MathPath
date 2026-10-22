@@ -11,6 +11,7 @@ from pydantic import ValidationError
 import lesson_builder as builder
 import main
 from graph_builder import KnowledgeGraph
+from model_settings import GenerationConfig
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -22,6 +23,12 @@ class LessonEnrichmentTests(unittest.TestCase):
         self.sample = copy.deepcopy(self.records["boundary_operator"])
         builder.clear_lesson_cache()
         self.addCleanup(builder.clear_lesson_cache)
+        configuration = patch.object(builder, "resolve_generation_config", side_effect=lambda *, default_model:
+            GenerationConfig(provider="api", base_url="https://offline.example.test/v1", model=default_model,
+                             api_format="chat_completions", output_mode="json_object", revision="offline-enrichment-fixture",
+                             api_key="synthetic-offline-key"))
+        configuration.start()
+        self.addCleanup(configuration.stop)
 
     def test_every_curated_lesson_has_followup_questions_and_a_valid_vector_illustration_offline(self):
         with patch.object(builder, "generate_text", side_effect=AssertionError("Curated lessons must remain offline")):

@@ -25,7 +25,7 @@ import urllib.error
 from uuid import uuid4
 
 APP_NAME = "MathPath"
-APP_VERSION = "0.5.0"
+APP_VERSION = "0.5.1"
 RESOURCE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 
 
@@ -335,6 +335,21 @@ def self_test(server: LocalServer) -> dict:
     settings = server.request("settings/model")
     public_fields = {"provider", "base_url", "model", "api_format", "output_mode", "has_api_key", "revision"}
     assert set(settings) == public_fields and settings["has_api_key"] is False, "temporary-default-settings"
+    assert (settings["provider"], settings["base_url"], settings["model"],
+            settings["api_format"], settings["output_mode"]) == (
+        "api", "https://models.sjtu.edu.cn/api/v1", "deepseek-reasoner",
+        "chat_completions", "json_object"), "fresh-deepseek-default-configuration"
+    # Missing-key handling must finish before an SDK client, OAuth session or
+    # environment credential can be consulted. The offline guard stays active.
+    from model_settings import SETTINGS_FILE, SettingsError, resolve_generation_config
+    assert not SETTINGS_FILE.exists(), "fresh-default-config-is-not-written"
+    try:
+        resolve_generation_config()
+    except SettingsError as error:
+        assert "API 密钥" in str(error), "missing-deepseek-key-explained"
+    else:
+        raise AssertionError("default-deepseek-was-usable-without-explicit-key")
+    assert not SETTINGS_FILE.exists(), "missing-key-does-not-write-config"
     # The entry point has already isolated all data in a fresh test directory.
     # Save only this synthetic value; never call the connection-test endpoint.
     synthetic_key = "synthetic-desktop-test-only-key"
@@ -382,6 +397,7 @@ def self_test(server: LocalServer) -> dict:
             "curated_lesson": True, "model_requests": 0, "persistent_port": True,
             "occupied_port_rejected": True, "single_instance": True,
             "enriched_curated_lessons": len(graph["nodes"]), "api_settings_synthetic_config": True,
+            "default_deepseek_configuration": True, "deepseek_requires_explicit_api_key": True,
             "saved_api_key_not_echoed": True, "configuration_directory": "temporary",
             "api_connection_tests": 0, "chatgpt_status_readonly_idle": True,
             "chatgpt_login_attempts": 0, "chatgpt_authorization_started": False,
@@ -529,7 +545,7 @@ def desktop_window(server: LocalServer, directory: Path, smoke: bool = False) ->
         MenuAction("连接 ChatGPT…", connect_chatgpt),
         MenuAction("使用说明", lambda: notify(
             "同调、秩—零度定理和 ε–δ 极限证明三个样例可从下拉框选择并直接学习，无需登录。\n\n"
-            "生成自己的学习图前，请点击「MathPath → 模型/API 设置」，选择 ChatGPT 或填写自己的 API 地址、模型与密钥后保存。\n\n"
+            "新用户默认使用交大平台的 DeepSeek（deepseek-reasoner）。生成自己的学习图前，请点击「MathPath → 模型/API 设置」，填写自己的交大平台 API 密钥后保存；也可切换 ChatGPT 或其他 API。\n\n"
             "选择 ChatGPT 后，设置页会显示「登录 / 重新连接 ChatGPT」按钮；也可使用菜单「连接 ChatGPT」。两处共用一个登录流程。\n\n"
             "登录不会自动保存服务选择或生成内容。API 密钥由 Windows 加密保存，设置页不回显原文。\n\n"
             "「历史 / 项目」保存学习图、卡片、笔记、作答与复习时间；可多选移动或删除历史。删除项目会保留历史并移到未分类。\n\n"
@@ -997,6 +1013,25 @@ def desktop_window(server: LocalServer, directory: Path, smoke: bool = False) ->
                 time.sleep(.2)
             else:
                 raise DesktopError("api-settings-not-ready")
+            previous_settings = server.request("settings/model")
+            preset = window.evaluate_js("(() => { const preset = document.getElementById('model-api-preset'); "
+                "if (!preset) return {visible: false}; preset.scrollIntoView({block:'center'}); "
+                "const rect = preset.getBoundingClientRect(); const visible = !preset.closest('[hidden]') "
+                "&& rect.width > 40 && rect.height > 20 && rect.top >= 0 && rect.bottom <= innerHeight; "
+                "const named = [...preset.options].some(option => option.value === 'sjtu_deepseek' "
+                "&& option.textContent.includes('DeepSeek') && option.textContent.includes('交大')); "
+                "preset.value = 'sjtu_deepseek'; preset.dispatchEvent(new Event('change', {bubbles: true})); "
+                "return {visible, named, fields: document.getElementById('model-provider').value === 'api' "
+                "&& document.getElementById('model-base-url').value === 'https://models.sjtu.edu.cn/api/v1' "
+                "&& document.getElementById('model-model').value === 'deepseek-reasoner' "
+                "&& document.getElementById('model-api-format').value === 'chat_completions' "
+                "&& document.getElementById('model-output-mode').value === 'json_object', "
+                "key_required: document.getElementById('model-api-key').required "
+                "&& document.getElementById('model-api-key').value === ''}; })()")
+            if not preset or not all(preset.values()):
+                raise DesktopError("deepseek-preset-not-discoverable")
+            if server.request("settings/model") != previous_settings:
+                raise DesktopError("deepseek-preset-was-saved-automatically")
             window.evaluate_js("(() => { const provider = document.getElementById('model-provider'); "
                 "provider.value = 'chatgpt'; provider.dispatchEvent(new Event('change', {bubbles: true})); return true; })()")
             deadline = time.monotonic() + 10
@@ -1091,6 +1126,8 @@ def desktop_window(server: LocalServer, directory: Path, smoke: bool = False) ->
                            "api_key_not_echoed": True, "api_settings_saved_metadata_loaded": True,
                            "api_settings_window_saves": 0,
                            "api_settings_connection_tests": 0, "chatgpt_login_button_visible": True,
+                           "deepseek_preset_visible": True, "deepseek_preset_requires_platform_key": True,
+                           "deepseek_preset_not_saved_automatically": True,
                            "chatgpt_login_button_in_view": True, "chatgpt_login_button_named": True,
                            "chatgpt_login_status_visible": True, "chatgpt_login_button_clicks": 0,
                            "chatgpt_login_attempts": 0, "chatgpt_authorization_started": False,

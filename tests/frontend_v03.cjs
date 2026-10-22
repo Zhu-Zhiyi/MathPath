@@ -862,10 +862,13 @@ async function checkModelSettings() {
     provider: "api", base_url: "https://models.example.test/v1", model: "example-model",
     api_format: "chat_completions", output_mode: "json_object", clear_api_key: true,
   }, "clearing uses saved public fields and never sends a replacement key or unsaved edits");
-  clearing.resolve(response(settingsFixture({ ...apiSettings, provider: "chatgpt", has_api_key: false, revision: "cleared" })));
+  clearing.resolve(response(settingsFixture({ ...apiSettings, has_api_key: false, revision: "cleared" })));
   await flush();
-  assert.match(environment.get("model-settings-message").textContent, /已清除密钥并切回 ChatGPT/);
-  assert(environment.get("model-api-fields").hidden);
+  assert.match(environment.get("model-settings-message").textContent, /已清除密钥，当前连接参数已保留/);
+  assert(!environment.get("model-api-fields").hidden);
+  assert.equal(environment.get("model-provider").value, "api", "clearing a key preserves the saved provider");
+  assert(environment.get("model-api-key").required, "the retained API needs a replacement key");
+  assert(environment.get("model-settings-test").disabled);
   assert(environment.get("model-settings-clear").disabled);
   environment.get("model-api-key").value = "synthetic-draft-key";
   environment.get("model-settings-close").click();

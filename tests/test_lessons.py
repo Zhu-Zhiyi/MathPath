@@ -16,6 +16,7 @@ import lesson_builder
 import llm_client
 from graph_builder import KnowledgeGraph
 from lesson_builder import Exercise, Lesson, LessonError, build_lesson
+from model_settings import GenerationConfig
 
 
 def example_graph():
@@ -47,6 +48,12 @@ class LessonTests(unittest.TestCase):
     def setUp(self):
         lesson_builder.clear_lesson_cache()
         self.addCleanup(lesson_builder.clear_lesson_cache)
+        configuration = patch.object(lesson_builder, "resolve_generation_config", side_effect=lambda *, default_model:
+            GenerationConfig(provider="api", base_url="https://offline.example.test/v1", model=default_model,
+                             api_format="chat_completions", output_mode="json_object", revision="offline-lesson-fixture",
+                             api_key="synthetic-offline-key"))
+        configuration.start()
+        self.addCleanup(configuration.stop)
         for name in ("get_usable_session", "OpenAI"):
             guard = patch.object(llm_client, name, side_effect=AssertionError("学习卡测试必须离线"))
             guard.start()

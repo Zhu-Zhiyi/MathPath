@@ -38,7 +38,7 @@ class LocalStaticFiles(StaticFiles):
         return response
 
 
-app = FastAPI(title="MathPath", version="0.5.0")
+app = FastAPI(title="MathPath", version="0.5.1")
 app.state.desktop_local_only = bool(getattr(sys, "frozen", False) or os.environ.get("MATHPATH_DESKTOP"))
 
 

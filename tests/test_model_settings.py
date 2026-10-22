@@ -47,9 +47,11 @@ class ModelSettingsTests(unittest.TestCase):
     def test_defaults_are_public_and_do_not_create_storage(self):
         public = settings.get_public_settings()
         self.assertEqual(set(public), FIELDS)
-        self.assertEqual(public["provider"], "chatgpt")
-        self.assertEqual(public["base_url"], "https://api.openai.com/v1")
-        self.assertEqual(public["model"], "")
+        self.assertEqual(public["provider"], "api")
+        self.assertEqual(public["base_url"], "https://models.sjtu.edu.cn/api/v1")
+        self.assertEqual(public["model"], "deepseek-reasoner")
+        self.assertEqual(public["api_format"], "chat_completions")
+        self.assertEqual(public["output_mode"], "json_object")
         self.assertEqual(public["revision"], "default")
         self.assertFalse(public["has_api_key"])
         self.assertFalse(self.file.exists())
@@ -65,6 +67,77 @@ class ModelSettingsTests(unittest.TestCase):
         private = json.loads(fake_protect(self.file.read_bytes(), decrypt=True))
         self.assertEqual(private["api_key"], CANARY)
         self.assertEqual(settings.get_public_settings(), public)
+
+    def test_default_deepseek_requires_key_without_creating_storage(self):
+        with patch.dict(os.environ, {"OPENAI_API_KEY": CANARY}):
+            with self.assertRaises(settings.SettingsError) as caught:
+                settings.resolve_generation_config(override_model="not-a-deepseek-model")
+        self.assertIn("API 密钥", str(caught.exception))
+        self.assertNotIn(CANARY, str(caught.exception))
+        self.assertFalse(self.file.exists())
+        chatgpt_login.load_session.assert_not_called()
+
+    def test_only_explicit_key_is_needed_to_activate_default_deepseek(self):
+        public = settings.save_settings({"api_key": CANARY})
+        config = settings.resolve_generation_config(override_model="ignored-oauth-alias")
+        self.assertEqual(config.base_url, "https://models.sjtu.edu.cn/api/v1")
+        self.assertEqual(config.model, "deepseek-reasoner")
+        self.assertEqual(config.api_key, CANARY)
+        self.assertTrue(public["has_api_key"])
+        self.assertNotIn(CANARY, json.dumps(public))
+        chatgpt_login.load_session.assert_not_called()
+
+    def test_existing_explicit_chatgpt_selection_is_not_replaced_by_new_default(self):
+        public = settings.save_settings({"provider": "chatgpt"})
+        before = self.file.read_bytes()
+        self.assertEqual(settings.get_public_settings(), public)
+        self.assertEqual(settings.resolve_generation_config().provider, "chatgpt")
+        self.assertEqual(self.file.read_bytes(), before)
+
+    def test_changed_endpoint_requires_new_key_and_preserves_original_file(self):
+        saved = settings.save_settings(api_input())
+        before = self.file.read_bytes()
+        for key in ({}, {"api_key": ""}, {"api_key": "   "}, {"api_key": None}):
+            with self.subTest(key_fields=set(key)), self.assertRaises(settings.SettingsError) as caught:
+                settings.save_settings({"base_url": settings.DEFAULT_BASE_URL,
+                                        "model": settings.DEFAULT_DEEPSEEK_MODEL, **key})
+            self.assertNotIn(CANARY, str(caught.exception))
+            self.assertEqual(self.file.read_bytes(), before)
+            self.assertEqual(settings.get_public_settings(), saved)
+
+    def test_same_normalized_endpoint_retains_key(self):
+        settings.save_settings(api_input())
+        public = settings.save_settings({"base_url": "https://MODELS.EXAMPLE.TEST/v1///", "model": "another-model"})
+        self.assertEqual(public["base_url"], "https://models.example.test/v1")
+        self.assertEqual(settings.resolve_generation_config().api_key, CANARY)
+
+    def test_explicit_new_key_can_switch_endpoint_without_retaining_old_key(self):
+        settings.save_settings(api_input())
+        replacement = "synthetic-sjtu-replacement-key"
+        public = settings.save_settings({"base_url": settings.DEFAULT_BASE_URL,
+                                         "model": settings.DEFAULT_DEEPSEEK_MODEL, "api_key": replacement})
+        self.assertTrue(public["has_api_key"])
+        self.assertEqual(settings.resolve_generation_config().api_key, replacement)
+        self.assertNotIn(CANARY, fake_protect(self.file.read_bytes(), decrypt=True).decode())
+
+    def test_clear_allows_unconfigured_new_destination_without_fallback(self):
+        settings.save_settings(api_input())
+        public = settings.save_settings({"base_url": settings.DEFAULT_BASE_URL,
+                                         "model": settings.DEFAULT_DEEPSEEK_MODEL, "clear_api_key": True})
+        self.assertEqual(public["provider"], "api")
+        self.assertFalse(public["has_api_key"])
+        self.assertEqual(public, settings.get_public_settings())
+        with self.assertRaises(settings.SettingsError):
+            settings.resolve_generation_config()
+        chatgpt_login.load_session.assert_not_called()
+
+    def test_changing_inactive_api_address_cannot_rebind_its_old_key(self):
+        settings.save_settings(api_input())
+        public = settings.save_settings({"provider": "chatgpt", "base_url": settings.DEFAULT_BASE_URL})
+        self.assertFalse(public["has_api_key"])
+        self.assertEqual(settings.resolve_generation_config().provider, "chatgpt")
+        with self.assertRaises(settings.SettingsError):
+            settings.save_settings({"provider": "api"})
 
     @unittest.skipUnless(os.name == "nt", "Windows DPAPI 只在 Windows 可用")
     def test_actual_windows_dpapi_roundtrip_uses_only_temporary_synthetic_record(self):
@@ -83,13 +156,17 @@ class ModelSettingsTests(unittest.TestCase):
             self.assertEqual(settings.resolve_generation_config().api_key, CANARY)
             previous = public
 
-    def test_clear_key_switches_to_chatgpt_without_touching_oauth(self):
+    def test_clear_key_keeps_api_selected_and_denies_generation_without_touching_oauth(self):
         settings.save_settings(api_input())
         public = settings.save_settings(api_input(clear_api_key=True))
-        self.assertEqual(public["provider"], "chatgpt")
+        self.assertEqual(public["provider"], "api")
+        self.assertEqual(public["model"], "test-model")
         self.assertFalse(public["has_api_key"])
         private = json.loads(fake_protect(self.file.read_bytes(), decrypt=True))
         self.assertEqual(private["api_key"], "")
+        self.assertEqual(settings.get_public_settings(), public)
+        with self.assertRaises(settings.SettingsError):
+            settings.resolve_generation_config()
         chatgpt_login.load_session.assert_not_called()
 
     def test_choosing_chatgpt_preserves_api_key_for_later_explicit_choice(self):
@@ -156,13 +233,14 @@ class ModelSettingsTests(unittest.TestCase):
         self.assertNotEqual(identity, settings.config_identity(settings.resolve_generation_config()))
 
     def test_oauth_override_uses_actual_oauth_identity(self):
+        settings.save_settings({"provider": "chatgpt"})
         default = settings.resolve_generation_config(default_model="default-oauth")
         override = settings.resolve_generation_config(default_model="default-oauth", override_model="explicit-oauth")
         self.assertEqual(default.model, "default-oauth")
         self.assertEqual(override.model, "explicit-oauth")
         self.assertEqual(override.base_url, chatgpt_login.RESOURCE)
         self.assertEqual(override.api_format, "responses")
-        self.assertFalse(self.file.exists())
+        self.assertEqual(settings.get_public_settings()["provider"], "chatgpt")
 
     def test_key_change_changes_revision_without_exposing_fingerprint(self):
         first = settings.save_settings(api_input())

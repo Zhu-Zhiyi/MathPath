@@ -1,6 +1,7 @@
 """API 调用回归：假 SDK / 完全离线 transport，不访问真实配置或模型。"""
 
 from contextlib import contextmanager
+from dataclasses import replace
 import json
 from pathlib import Path
 import sys
@@ -94,6 +95,27 @@ class APIProviderTests(unittest.TestCase):
                     self.assertEqual(call["response_format"], {"type": "json_object"})
                 else:
                     self.assertNotIn("response_format", call)
+
+    def test_sjtu_deepseek_reasoner_uses_explicit_endpoint_and_final_content_only(self):
+        config = replace(configuration(), base_url="https://models.sjtu.edu.cn/api/v1", model="deepseek-reasoner")
+        with fake_sdk() as (client, constructor, _):
+            client.chat.completions.create.return_value.choices[0].message.reasoning_content = "synthetic-private-reasoning"
+            output = self.generate(config)
+        self.assertEqual(output, '{"answer":"ok"}')
+        self.assertNotIn("reasoning", output)
+        self.assertEqual(constructor.call_args.kwargs["base_url"], config.base_url)
+        call = client.chat.completions.create.call_args.kwargs
+        self.assertEqual(call["model"], "deepseek-reasoner")
+        self.assertEqual(call["response_format"], {"type": "json_object"})
+        client.responses.create.assert_not_called()
+        llm.get_usable_session.assert_not_called()
+
+    def test_missing_explicit_api_key_stops_before_sdk_or_transport(self):
+        with self.assertRaises(llm.ModelError):
+            self.generate(replace(configuration(), api_key=""))
+        llm.OpenAI.assert_not_called()
+        llm.DefaultHttpxClient.assert_not_called()
+        llm.get_usable_session.assert_not_called()
 
     def test_json_object_without_schema_still_requests_and_mentions_json(self):
         with fake_sdk() as (client, _, _):

@@ -23,7 +23,7 @@ import zlib
 import zipfile
 
 PROJECT = Path(__file__).resolve().parents[1]
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 MODULES = ["desktop.py", "main.py", "chatgpt_login.py", "graph_builder.py",
            "llm_client.py", "lesson_builder.py", "planner.py", "model_settings.py", "chatgpt_connection.py",
            "library_models.py", "library_store.py", "study_builder.py", "teaching_help.py", "learning_guidance.py"]
@@ -221,14 +221,18 @@ def license_notices(destination: Path) -> list[Path]:
     return files
 
 
-README = """MathPath 0.5.0 — Windows 桌面版
+README = """MathPath 0.5.1 — Windows 桌面版
 
-运行：双击 MathPath-desktop-0.5.0-windows-x64.exe。无需安装 Python，无需保持命令行窗口。
+运行：双击 MathPath-desktop-0.5.1-windows-x64.exe。无需安装 Python，无需保持命令行窗口。
 建议 Windows 10/11 64 位；需要 .NET Framework 4.6.2 或更新版本、Microsoft Edge WebView2 Runtime。
 如果缺少 WebView2，可从微软官网安装：https://developer.microsoft.com/microsoft-edge/webview2/
 
 第一次使用：选择同调、秩—零度或 ε–δ 极限，再点击“载入离线样例”。三套样例及学习卡无需登录。
 要生成自己的图，点击软件菜单 MathPath → 模型/API 设置。
+首次使用默认预填交大平台 DeepSeek：https://models.sjtu.edu.cn/api/v1，模型 deepseek-reasoner，
+Chat Completions + JSON 对象。填写自己的交大平台 API 密钥并“保存并使用”；软件不内置共享密钥。
+升级保留已保存的服务选择；需要切换时请选择“DeepSeek（交大平台，默认）”预设。
+选择预设不自动保存、测试或生成；缺少密钥时提示配置，清除密钥后也不会自动切换其他模型。
 可选择 ChatGPT 登录方式，或填写自己的兼容 API 地址、模型名称和 API 密钥后保存。
 选择 ChatGPT 后，设置页会显示「登录 / 重新连接 ChatGPT」按钮；也可使用 MathPath → 连接 ChatGPT 菜单。
 两处共用一个登录流程，授权在系统浏览器中进行。页面会显示本次登录状态，不显示账号或凭证。
@@ -278,9 +282,9 @@ AI 反馈仍需核对；一次答对不表示整个知识点已经掌握，模�
 如果该端口被别的程序占用，MathPath 会提示先关闭占用程序；不会静默切换端口导致进度无法恢复。
 
 离线自检（不登录、不调用模型）：
-MathPath-desktop-0.5.0-windows-x64.exe --self-test --report self-test.json
+MathPath-desktop-0.5.1-windows-x64.exe --self-test --report self-test.json
 真实窗口自检（会短暂打开并自动关闭窗口）：
-MathPath-desktop-0.5.0-windows-x64.exe --smoke-window --report window-test.json
+MathPath-desktop-0.5.1-windows-x64.exe --smoke-window --report window-test.json
 
 本版本是可运行原型。发行包尚未进行 Windows 代码签名。
 第三方许可见 licenses 目录；构建与运行验证见同目录 JSON 报告。

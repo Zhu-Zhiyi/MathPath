@@ -95,6 +95,8 @@ const ui = {
   modelSettingsActive: document.getElementById("model-settings-active"),
   modelProvider: document.getElementById("model-provider"),
   modelApiFields: document.getElementById("model-api-fields"),
+  modelApiPreset: document.getElementById("model-api-preset"),
+  modelApiKeyNote: document.getElementById("model-api-key-note"),
   chatgptLoginSection: document.getElementById("chatgpt-login-section"),
   chatgptLoginButton: document.getElementById("chatgpt-login-button"),
   chatgptLoginStatus: document.getElementById("chatgpt-login-status"),
@@ -301,9 +303,12 @@ let chatgptStatusController = null;
 let chatgptPollTimer = null;
 let chatgptPollCount = 0;
 const MAX_CHATGPT_STATUS_POLLS = 150;
+const DEEPSEEK_PRESET = Object.freeze({
+  base_url: "https://models.sjtu.edu.cn/api/v1", model: "deepseek-reasoner",
+  api_format: "chat_completions", output_mode: "json_object",
+});
 const DEFAULT_MODEL_SETTINGS = {
-  provider: "chatgpt", base_url: "https://api.openai.com/v1", model: "",
-  api_format: "chat_completions", output_mode: "json_object", has_api_key: false, revision: "default",
+  provider: "api", ...DEEPSEEK_PRESET, has_api_key: false, revision: "default",
 };
 
 function emptyStudyState() {
@@ -1619,7 +1624,37 @@ function modelSettingsLabel(settings = modelSettings) {
   if (!settings) return "使用本机已保存的配置，打开设置可查看。";
   if (settings.provider === "chatgpt") return "ChatGPT 授权";
   const host = settings.base_url.match(/^https?:\/\/([^/]+)/i)?.[1] || settings.base_url;
+  if (modelPresetMatches(settings)) return `DeepSeek（交大平台） · ${settings.model}`;
   return `自定义 API · ${settings.model} · ${host}`;
+}
+
+// Match the saved destination conservatively: normalize host case and trailing
+// slashes, but keep the path and explicit port distinct. The server validates it.
+function modelApiDestination(value) {
+  const match = value.trim().match(/^(https?):\/\/([^/?#\s]+)(\/[^?#\s]*)?$/i);
+  return match ? `${match[1].toLowerCase()}://${match[2].toLowerCase()}${(match[3] || "").replace(/\/+$/, "")}` : "";
+}
+
+function modelPresetMatches(settings) {
+  return modelApiDestination(settings.base_url) === DEEPSEEK_PRESET.base_url &&
+    ["model", "api_format", "output_mode"].every(key => settings[key] === DEEPSEEK_PRESET[key]);
+}
+
+function modelSettingsCanReuseApiKey() {
+  return Boolean(modelSettings?.has_api_key && modelApiDestination(ui.modelBaseUrl.value) &&
+    modelApiDestination(ui.modelBaseUrl.value) === modelApiDestination(modelSettings.base_url));
+}
+
+function renderModelApiKeyRequirement() {
+  const reusable = modelSettingsCanReuseApiKey();
+  ui.modelApiKey.required = ui.modelProvider.value === "api" && !reusable;
+  ui.modelApiKey.setAttribute("placeholder", reusable
+    ? "已保存此地址的密钥；留空保持，输入可替换" : "必须输入当前平台的 API 密钥");
+  ui.modelApiKeyNote.textContent = reusable
+    ? "当前基础地址已有密钥；留空保留，输入可替换。密钥不会回填显示或写入导出文件。"
+    : modelSettings?.has_api_key
+      ? "基础地址已改变，请输入新平台的密钥。已存密钥不会转用于另一个地址。"
+      : "尚未配置密钥，请填写当前平台签发的 API 密钥后保存。密钥不会回填显示或写入导出文件。";
 }
 
 function renderModelProviderStatus() {
@@ -1627,11 +1662,13 @@ function renderModelProviderStatus() {
     ? "模型配置正在保存。关闭设置不会取消已提交的保存。"
     : modelSettingsNeedsReload
       ? "模型配置的保存结果尚未确认，打开设置可重新读取。"
-      : `当前模型：${modelSettingsLabel()}`;
+      : `当前模型：${modelSettingsLabel()}${modelSettings?.provider === "api" && !modelSettings.has_api_key ? " · 尚未配置密钥" : ""}`;
   ui.modelSettingsActive.textContent = modelSettingsLoading
     ? "正在读取本机配置…"
     : modelSettingsNeedsReload ? "保存结果尚未确认，请重新读取本机配置后再使用。"
-    : modelSettings ? `已保存并生效：${modelSettingsLabel()}` : "本机配置尚未读取。";
+    : modelSettings ? modelSettings.provider === "api" && !modelSettings.has_api_key
+      ? `当前配置：${modelSettingsLabel()}。尚未配置密钥，请在下方填写并保存。`
+      : `已保存并生效：${modelSettingsLabel()}` : "本机配置尚未读取。";
 }
 
 function setModelSettingsMessage(message = "", error = "") {
@@ -1647,9 +1684,8 @@ function fillModelSettingsForm() {
   ui.modelModel.value = settings.model;
   ui.modelApiFormat.value = settings.api_format;
   ui.modelOutputMode.value = settings.output_mode;
+  ui.modelApiPreset.value = modelPresetMatches(settings) ? "sjtu_deepseek" : "custom";
   ui.modelApiKey.value = "";
-  ui.modelApiKey.setAttribute("placeholder", settings.has_api_key
-    ? "已保存密钥；留空保持，输入可替换" : "输入你的 API 密钥");
   renderModelSettingsControls();
 }
 
@@ -1672,6 +1708,7 @@ function renderModelSettingsControls() {
   const api = ui.modelProvider.value === "api";
   ui.modelApiFields.hidden = !api;
   ui.modelProvider.disabled = unavailable;
+  ui.modelApiPreset.disabled = unavailable || !api;
   for (const element of [ui.modelBaseUrl, ui.modelModel, ui.modelApiKey, ui.modelApiFormat, ui.modelOutputMode]) {
     element.disabled = unavailable || !api;
   }
@@ -1682,6 +1719,7 @@ function renderModelSettingsControls() {
   ui.modelSettingsTest.textContent = modelSettingsTesting ? "正在测试…" : "测试已保存 API（可能计费）";
   ui.modelSettingsForm.setAttribute("aria-busy", String(modelSettingsLoading || modelSettingsSaving || modelSettingsTesting));
   renderModelProviderStatus();
+  renderModelApiKeyRequirement();
   renderChatgptLogin();
 }
 
@@ -1944,8 +1982,8 @@ async function saveModelSettings(clearKey = false) {
     setModelSettingsMessage("", "基础 API 地址最多 2048 字，模型 ID 最多 200 字，密钥最多 4096 字。");
     return;
   }
-  if (!clearKey && fields.provider === "api" && (!fields.base_url || !fields.model || (!ui.modelApiKey.value && !modelSettings.has_api_key))) {
-    setModelSettingsMessage("", "使用自定义 API 需要基础 API 地址、确切模型 ID 和 API 密钥。");
+  if (!clearKey && fields.provider === "api" && (!fields.base_url || !fields.model || (!ui.modelApiKey.value && !modelSettingsCanReuseApiKey()))) {
+    setModelSettingsMessage("", "使用 API 需要基础 API 地址、确切模型 ID 和当前平台的密钥；更换基础地址后必须输入新密钥。");
     return;
   }
   if (clearKey) fields.clear_api_key = true;
@@ -1973,7 +2011,7 @@ async function saveModelSettings(clearKey = false) {
     invalidateModelContent();
     fillModelSettingsForm();
     setModelSettingsMessage(clearKey
-      ? "已清除密钥并切回 ChatGPT 授权。当前图和掌握标记保留。"
+      ? "已清除密钥，当前连接参数已保留。再次使用 API 前请重新填写密钥。当前图和掌握标记保留。"
       : "配置已保存并生效。没有测试连接或自动生成内容。");
   } catch (error) {
     ui.modelApiKey.value = "";
@@ -3803,6 +3841,24 @@ ui.modelSettingsForm.addEventListener("submit", event => {
 });
 ui.modelSettingsClear.addEventListener("click", () => saveModelSettings(true));
 ui.modelSettingsTest.addEventListener("click", testModelSettings);
+ui.modelApiPreset.addEventListener("change", () => {
+  if (ui.modelApiPreset.disabled || ui.modelProvider.value !== "api") return;
+  if (ui.modelApiPreset.value === "sjtu_deepseek") {
+    if (modelApiDestination(ui.modelBaseUrl.value) !== DEEPSEEK_PRESET.base_url) ui.modelApiKey.value = "";
+    ui.modelBaseUrl.value = DEEPSEEK_PRESET.base_url;
+    ui.modelModel.value = DEEPSEEK_PRESET.model;
+    ui.modelApiFormat.value = DEEPSEEK_PRESET.api_format;
+    ui.modelOutputMode.value = DEEPSEEK_PRESET.output_mode;
+  }
+  renderModelSettingsControls();
+  setModelSettingsMessage("预设尚未保存。请核对参数和当前平台密钥，再点击“保存并使用”。");
+});
+for (const element of [ui.modelBaseUrl, ui.modelModel, ui.modelApiFormat, ui.modelOutputMode]) {
+  element.addEventListener(element.tagName === "SELECT" ? "change" : "input", () => {
+    ui.modelApiPreset.value = modelPresetMatches(modelSettingsFormValues()) ? "sjtu_deepseek" : "custom";
+    renderModelApiKeyRequirement();
+  });
+}
 ui.chatgptLoginButton.addEventListener("click", startChatgptLogin);
 ui.modelProvider.addEventListener("change", () => {
   if (ui.modelProvider.value !== "api") ui.modelApiKey.value = "";

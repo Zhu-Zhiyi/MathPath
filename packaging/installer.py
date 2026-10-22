@@ -16,7 +16,7 @@ import sys
 import tempfile
 
 PAYLOAD = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent)) / "payload"
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 EXECUTABLE = f"MathPath-desktop-{VERSION}-windows-x64.exe"
 FORBIDDEN = re.compile(r"(^|/)(\.mathpath|\.venv|EBWebView|WebView2UserData)(/|$)|chatgpt_session\.dpapi|api_settings\.dpapi|host_id\.json|\.(sqlite3?|db)(?:[-.]|$)|(^|/)(desktop|state|workspace|progress)\.json$", re.IGNORECASE)
 

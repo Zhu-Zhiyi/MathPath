@@ -11,7 +11,8 @@ from urllib.parse import unquote, urlsplit, urlunsplit
 from chatgpt_login import DATA_DIR, RESOURCE, atomic_write, protect_bytes
 
 SETTINGS_FILE = DATA_DIR / "api_settings.dpapi"
-DEFAULT_BASE_URL = "https://api.openai.com/v1"
+DEFAULT_BASE_URL = "https://models.sjtu.edu.cn/api/v1"
+DEFAULT_DEEPSEEK_MODEL = "deepseek-reasoner"
 DEFAULT_CHATGPT_MODEL = "gpt-5.6-sol"
 _settings_lock = threading.RLock()
 _PUBLIC_FIELDS = ("provider", "base_url", "model", "api_format", "output_mode", "revision")
@@ -35,7 +36,7 @@ class GenerationConfig:
 
 
 def _defaults():
-    return {"provider": "chatgpt", "base_url": DEFAULT_BASE_URL, "model": "",
+    return {"provider": "api", "base_url": DEFAULT_BASE_URL, "model": DEFAULT_DEEPSEEK_MODEL,
             "api_format": "chat_completions", "output_mode": "json_object",
             "api_key": "", "revision": "default"}
 
@@ -85,7 +86,7 @@ def _base_url(value):
         raise SettingsError(message) from None
 
 
-def _validate(record):
+def _validate(record, *, allow_missing_key=False):
     validated = dict(record)
     if not isinstance(validated.get("provider"), str) or validated["provider"] not in {"chatgpt", "api"}:
         raise SettingsError("请选择 ChatGPT 登录或自定义 API。")
@@ -99,7 +100,7 @@ def _validate(record):
     if validated["provider"] == "api":
         if not validated["model"]:
             raise SettingsError("使用 API 前，请填写模型名称。")
-        if not validated["api_key"]:
+        if not validated["api_key"] and not allow_missing_key:
             raise SettingsError("使用 API 前，请填写并保存 API 密钥。")
     return validated
 
@@ -114,7 +115,7 @@ def _load_locked():
             raise ValueError
         if not isinstance(raw["revision"], str) or not re.fullmatch(r"[a-f0-9]{32}", raw["revision"]):
             raise ValueError
-        return _validate(raw)
+        return _validate(raw, allow_missing_key=True)
     except Exception:
         raise SettingsError("本地 API 配置无法读取，请保留文件并反馈此提示。") from None
 
@@ -136,6 +137,8 @@ def save_settings(data):
         raise SettingsError("清除密钥选项格式不正确。")
     with _settings_lock:
         record = _load_locked()
+        previous_base_url = record["base_url"]
+        previous_key = record["api_key"]
         for name in _INPUT_FIELDS - {"api_key", "clear_api_key"}:
             if name in data:
                 record[name] = data[name]
@@ -144,10 +147,14 @@ def save_settings(data):
             supplied_key = _text(supplied_key, message="API 密钥须为不超过 4096 字的文本。", limit=4096)
             if supplied_key:
                 record["api_key"] = supplied_key
+        record["base_url"] = _base_url(record["base_url"])
+        if record["base_url"] != previous_base_url and previous_key and not supplied_key:
+            if record["provider"] == "api" and not clear_key:
+                raise SettingsError("API 地址已变更，请重新填写该平台的 API 密钥；原配置仍保留。")
+            record["api_key"] = ""
         if clear_key:
             record["api_key"] = ""
-            record["provider"] = "chatgpt"
-        record = _validate(record)
+        record = _validate(record, allow_missing_key=clear_key)
         record["revision"] = secrets.token_hex(16)
         try:
             encoded = json.dumps(record, ensure_ascii=False).encode("utf-8")
@@ -162,7 +169,7 @@ def resolve_generation_config(default_model=DEFAULT_CHATGPT_MODEL, override_mode
     with _settings_lock:
         record = _load_locked()
     if record["provider"] == "api":
-        return GenerationConfig(**record)
+        return GenerationConfig(**_validate(record))
     model = default_model if override_model is None else override_model
     model = _text(model, message="模型名称须为不超过 200 字的非空文本。", limit=200, empty=False)
     return GenerationConfig(provider="chatgpt", base_url=RESOURCE, model=model,

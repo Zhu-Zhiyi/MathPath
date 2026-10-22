@@ -114,7 +114,7 @@ function backend() {
     else if (url === "/study/chat") value = { response: "Compare $Z_n/B_n$. <img src=x onerror=alert(1)>", source: payload.use_model ? "model_candidate" : "local_reference", review_required: true, answer_status: "answered", problem_id: null, problem_save_failed: false };
     else if (url === "/study/scope") value = payload.text === "我想学习拓扑学" ? { original_text: payload.text, needs_selection: true, reason: "先细化一个具体目标。", options: [{ id: "open_sets", title: "开集与连续", goal: "理解用开集定义连续映射", description: "从开集和原像开始。" }, { id: "fundamental_group", title: "基本群", goal: "理解基本群如何记录环路的变形", description: "从基点环路开始。" }] } : { original_text: payload.text, needs_selection: false, reason: "目标已经具体。", options: [] };
     else if (url === "/study/references") value = { books: [{ id: "hatcher", title: "Algebraic Topology", author: "Allen Hatcher", url: "https://pi.math.cornell.edu/~hatcher/AT/AT.pdf", section: "§2.1", why: "阅读链与同调的定义。" }], message: "固定教材目录；请核对当前对象与条件。" };
-    else if (url === "/settings/model") value = { provider: "chatgpt", base_url: "https://api.openai.com/v1", model: "", api_format: "chat_completions", output_mode: "json_object", has_api_key: false, revision: "default" };
+    else if (url === "/settings/model") value = { provider: "api", base_url: "https://models.sjtu.edu.cn/api/v1", model: "deepseek-reasoner", api_format: "chat_completions", output_mode: "json_object", has_api_key: false, revision: "default" };
     else if (url === "/settings/chatgpt/status") value = { status: "idle", message: "本次运行尚未发起登录。", attempt: 0 };
     else throw new Error(`Unexpected offline request ${method} ${url}`);
     return { ok: true, status: 200, json: async () => copy(value) };
@@ -319,7 +319,109 @@ async function checkV042GuidanceAndProblems() {
   assert.equal(analyzeCount(), 2); assert(!env.requests.some(item => item.url === "/settings/chatgpt/login"));
 }
 
+async function checkDefaultDeepseekPreset() {
+  const settingsFixture = overrides => ({ provider: "chatgpt", base_url: "https://api.openai.com/v1", model: "", api_format: "chat_completions", output_mode: "json_object", has_api_key: false, revision: "default", ...overrides });
+  const settingsRequests = (env, method = "GET") => env.requests.filter(request => request.url === "/settings/model" && (request.options?.method || "GET") === method);
+  const latestSettings = (env, method = "GET") => settingsRequests(env, method).at(-1);
+  const statusRequests = env => env.requests.filter(request => request.url === "/settings/chatgpt/status");
+  const loginRequests = env => env.requests.filter(request => request.url === "/settings/chatgpt/login");
+  const testRequests = env => env.requests.filter(request => request.url === "/settings/model/test");
+  const deepseek = settingsFixture({ provider: "api", base_url: "https://models.sjtu.edu.cn/api/v1", model: "deepseek-reasoner" });
+  const saved = { version: 2, graph: fixture, mastery: {}, draft: "Offline goal", source: "generated" };
+  const environment = makeEnvironment({ saved });
+  await settle(environment, backend());
+  assert.deepEqual(JSON.parse(environment.evaluate("JSON.stringify(DEFAULT_MODEL_SETTINGS)")), deepseek);
+  environment.get("model-settings-button").click();
+  latestSettings(environment).resolve(response(deepseek)); await flush();
+  assert.equal(environment.get("model-provider").value, "api");
+  assert.equal(environment.get("model-api-preset").value, "sjtu_deepseek");
+  assert.equal(environment.get("model-base-url").value, deepseek.base_url);
+  assert.equal(environment.get("model-model").value, "deepseek-reasoner");
+  assert.equal(environment.get("model-api-format").value, "chat_completions");
+  assert.equal(environment.get("model-output-mode").value, "json_object");
+  assert(environment.get("chatgpt-login-section").hidden);
+  assert.equal(statusRequests(environment).length, 0, "the keyless DeepSeek default never checks ChatGPT status");
+  assert.equal(loginRequests(environment).length, 0);
+  assert(environment.get("model-api-key").required);
+  assert.match(environment.get("model-provider-status").textContent, /DeepSeek.*尚未配置密钥/);
+  assert.match(environment.get("model-settings-active").textContent, /尚未配置密钥/);
+  assert(!environment.get("model-settings-active").textContent.includes("生效"), "missing credentials do not claim a ready model");
+  assert(environment.get("model-settings-test").disabled);
+  environment.get("model-settings-form").dispatch("submit");
+  assert.equal(settingsRequests(environment, "POST").length, 0, "missing-key configuration is rejected locally");
+  assert.match(environment.get("model-settings-error").textContent, /当前平台的密钥/);
+  const countBeforePreset = environment.requests.length;
+  environment.get("model-api-preset").value = "custom"; environment.get("model-api-preset").dispatch("change");
+  assert.equal(environment.get("model-base-url").value, deepseek.base_url, "custom selection keeps editable values");
+  environment.get("model-base-url").value = "https://other.example.test/v1"; environment.get("model-base-url").dispatch("input");
+  environment.get("model-model").value = "other-model"; environment.get("model-model").dispatch("input");
+  environment.get("model-api-format").value = "responses";
+  environment.get("model-output-mode").value = "json_schema";
+  environment.get("model-api-key").value = "synthetic-foreign-draft-key";
+  environment.get("model-api-preset").value = "sjtu_deepseek"; environment.get("model-api-preset").dispatch("change");
+  assert.equal(environment.get("model-base-url").value, deepseek.base_url);
+  assert.equal(environment.get("model-model").value, deepseek.model);
+  assert.equal(environment.get("model-api-format").value, "chat_completions");
+  assert.equal(environment.get("model-output-mode").value, "json_object");
+  assert.equal(environment.get("model-api-key").value, "", "changing a preset destination clears the typed foreign key");
+  assert.equal(environment.requests.length, countBeforePreset, "preset and field changes never save, test, log in or generate");
+  environment.get("model-api-key").value = "synthetic-sjtu-key";
+  environment.get("model-settings-form").dispatch("submit");
+  assert.deepEqual(JSON.parse(latestSettings(environment, "POST").options.body), {
+    provider: "api", base_url: deepseek.base_url, model: "deepseek-reasoner", api_format: "chat_completions", output_mode: "json_object", api_key: "synthetic-sjtu-key",
+  });
+  latestSettings(environment, "POST").resolve(response({ ...deepseek, has_api_key: true, revision: "sjtu-saved" })); await flush();
+  assert(!environment.get("model-api-key").required);
+  environment.get("model-base-url").value = "https://MODELS.SJTU.EDU.CN/api/v1/"; environment.get("model-base-url").dispatch("input");
+  assert(!environment.get("model-api-key").required, "host case and trailing slash do not change the destination");
+  environment.get("model-base-url").value = "https://other.example.test/v1"; environment.get("model-base-url").dispatch("input");
+  assert(environment.get("model-api-key").required);
+  assert.match(environment.get("model-api-key").getAttribute("placeholder"), /当前平台/);
+  assert.match(environment.get("model-api-key-note").textContent, /基础地址已改变/);
+  const savedCount = settingsRequests(environment, "POST").length;
+  environment.get("model-settings-form").dispatch("submit");
+  assert.equal(settingsRequests(environment, "POST").length, savedCount, "a different endpoint cannot inherit the saved key");
+  assert.equal(testRequests(environment).length, 0);
+  assert.equal(statusRequests(environment).length, 0);
+  assert.equal(loginRequests(environment).length, 0);
+  environment.get("model-settings-clear").click();
+  const clearing = latestSettings(environment, "POST");
+  assert.deepEqual(JSON.parse(clearing.options.body), {
+    provider: "api", base_url: deepseek.base_url, model: "deepseek-reasoner", api_format: "chat_completions", output_mode: "json_object", clear_api_key: true,
+  }, "clear uses the saved destination, with no unsaved endpoint or replacement key");
+  clearing.resolve(response({ ...deepseek, revision: "sjtu-cleared" })); await flush();
+  assert.equal(environment.get("model-provider").value, "api");
+  assert.equal(environment.get("model-api-preset").value, "sjtu_deepseek");
+  assert(environment.get("model-api-key").required);
+  assert(environment.get("model-settings-test").disabled);
+  assert.match(environment.get("model-settings-message").textContent, /当前连接参数已保留/);
+  assert.match(environment.get("model-settings-active").textContent, /尚未配置密钥/);
+  assert.equal(statusRequests(environment).length, 0, "clearing the API key never falls back to ChatGPT");
+
+  // A previous custom configuration remains active until an explicit successful save.
+  const prior = makeEnvironment({ saved }); await settle(prior, backend());
+  const priorSettings = settingsFixture({ provider: "api", base_url: "https://prior.example.test/v1", model: "prior-model", api_format: "responses", output_mode: "prompt_only", has_api_key: true, revision: "prior-config" });
+  prior.get("model-settings-button").click(); latestSettings(prior).resolve(response(priorSettings)); await flush();
+  assert.equal(prior.get("model-api-preset").value, "custom");
+  assert.equal(prior.get("model-base-url").value, priorSettings.base_url);
+  assert.equal(prior.get("model-model").value, "prior-model");
+  assert(!prior.get("model-api-key").required);
+  prior.get("model-api-key").value = "synthetic-prior-key";
+  prior.get("model-api-preset").value = "sjtu_deepseek"; prior.get("model-api-preset").dispatch("change");
+  assert.equal(prior.get("model-api-key").value, "");
+  assert(prior.get("model-api-key").required);
+  assert.match(prior.get("model-provider-status").textContent, /prior-model/);
+  prior.get("model-settings-form").dispatch("submit");
+  assert.equal(settingsRequests(prior, "POST").length, 0, "the old saved key is not offered to DeepSeek");
+  prior.get("model-settings-close").click(); prior.get("model-settings-button").click(); await flush();
+  assert.equal(prior.get("model-api-preset").value, "custom");
+  assert.equal(prior.get("model-base-url").value, priorSettings.base_url);
+  assert.equal(prior.get("model-model").value, "prior-model");
+  assert.equal(testRequests(prior).length, 0); assert.equal(statusRequests(prior).length, 0); assert.equal(loginRequests(prior).length, 0);
+}
+
 async function main() {
+  await checkDefaultDeepseekPreset();
   await checkFullBackupAndExamples();
   const env = makeEnvironment({ saved: { version: 2, graph: fixture, mastery: { base: flags }, draft: "Old goal", source: "generated" } });
   const store = backend();
@@ -482,6 +584,11 @@ async function main() {
   assert.equal(env.document.activeElement, focusables[0]);
   env.document.dispatch("keydown", { key: "Escape" }); assert(env.get("library-panel").hidden);
   env.get("model-settings-button").click(); await settle(env, store);
+  assert(env.get("chatgpt-login-section").hidden);
+  assert.equal(env.get("model-api-preset").value, "sjtu_deepseek");
+  assert.match(env.get("model-settings-active").textContent, /尚未配置密钥/);
+  assert(!env.requests.some(item => item.url === "/settings/chatgpt/status"), "the default API never polls ChatGPT login");
+  env.get("model-provider").value = "chatgpt"; env.get("model-provider").dispatch("change"); await settle(env, store);
   assert(!env.get("chatgpt-login-section").hidden);
   assert(!env.requests.some(item => item.url === "/settings/chatgpt/login"), "opening settings never initiates login");
   env.get("model-provider").value = "api"; env.get("model-provider").dispatch("change");
@@ -538,7 +645,7 @@ value=HistoryCreate.model_validate_json(sys.stdin.read())
 print(json.dumps({'task':value.state.attempts[0].task.model_dump()}))`, JSON.stringify({ title: "作答快照", goal: "解释", project_id: null, graph: actual.graph, state: checkedAttempt }));
   assert.equal(taskRoundtrip.task.question, selected.question);
 
-  console.log("MathPath v0.5.0 frontend offline checks passed: full backup download/preview/cancel/append/repeat/size and delayed-file checks, offline example selection, goal/chat scope choice without automatic generation, reference-book triggers/cache/links, unresolved problems/manual records/status/delete/failure retry, floating chat movement/resize/keyboard/modal suspension, context/multiturn/100-turn preservation, cancellation/stale replies/save failures, safe text, migration, histories, projects, batch selection, safe deletion, revisions, learning records, optional feedback, teaching actions, hints, review, snapshot identity, record limits, import/export, modal focus, credential isolation and actual Python/math-content/chat schema roundtrips.");
+  console.log("MathPath v0.5.1 frontend offline checks passed: DeepSeek default/preset/missing-key/endpoint-key isolation, full backup download/preview/cancel/append/repeat/size and delayed-file checks, offline example selection, goal/chat scope choice without automatic generation, reference-book triggers/cache/links, unresolved problems/manual records/status/delete/failure retry, floating chat movement/resize/keyboard/modal suspension, context/multiturn/100-turn preservation, cancellation/stale replies/save failures, safe text, migration, histories, projects, batch selection, safe deletion, revisions, learning records, optional feedback, teaching actions, hints, review, snapshot identity, record limits, import/export, modal focus, credential isolation and actual Python/math-content/chat schema roundtrips.");
 }
 
 const watchdog = setTimeout(() => { console.error("Offline frontend checks stalled with an unresolved request"); process.exitCode = 1; }, 25000);

@@ -19,6 +19,7 @@ sys.path.insert(0, str(PROJECT))
 import graph_builder
 import llm_client
 from graph_builder import GraphError, KnowledgeGraph
+from model_settings import GenerationConfig
 from planner import PlanError, current_learning_status
 from pydantic import ValidationError
 
@@ -53,6 +54,10 @@ def fake_model(events):
     stream.__enter__.return_value = iter(events)
     client.responses.create.return_value = stream
     with patch.object(llm_client, "get_usable_session", return_value=session), \
+            patch.object(llm_client, "resolve_generation_config", side_effect=lambda default_model=llm_client.MODEL, override_model=None:
+                         GenerationConfig(provider="chatgpt", base_url=llm_client.RESOURCE,
+                                          model=default_model if override_model is None else override_model,
+                                          api_format="responses", output_mode="json_schema", revision="offline-oauth-fixture")), \
             patch.object(llm_client, "OpenAI", return_value=client):
         yield client
 
@@ -60,7 +65,7 @@ def fake_model(events):
 class MathPathTests(unittest.TestCase):
     def setUp(self):
         # Fail immediately if a later test accidentally omits its offline mock.
-        for name in ("get_usable_session", "OpenAI"):
+        for name in ("get_usable_session", "OpenAI", "resolve_generation_config"):
             guard = patch.object(llm_client, name, side_effect=AssertionError("必须使用离线模型模拟"))
             guard.start()
             self.addCleanup(guard.stop)

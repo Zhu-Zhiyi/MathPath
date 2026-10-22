@@ -18,6 +18,7 @@ import llm_client
 from graph_builder import KnowledgeGraph
 from lesson_builder import LessonError
 from llm_client import ModelError
+from model_settings import GenerationConfig
 
 
 def graph_with_routes():
@@ -51,6 +52,14 @@ class LessonCacheTests(unittest.TestCase):
     def setUp(self):
         builder.clear_lesson_cache()
         self.addCleanup(builder.clear_lesson_cache)
+        # Cache tests choose their own isolated provider rather than depending
+        # on a user's saved settings or the application's keyless default.
+        configuration = patch.object(builder, "resolve_generation_config", side_effect=lambda *, default_model:
+            GenerationConfig(provider="api", base_url="https://offline.example.test/v1", model=default_model,
+                             api_format="chat_completions", output_mode="json_object", revision="offline-cache-fixture",
+                             api_key="synthetic-offline-key"))
+        configuration.start()
+        self.addCleanup(configuration.stop)
         for name in ("get_usable_session", "OpenAI"):
             guard = patch.object(llm_client, name, side_effect=AssertionError("缓存测试不得读取授权或调用真实模型"))
             guard.start()

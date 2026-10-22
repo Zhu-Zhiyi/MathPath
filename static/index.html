@@ -14,7 +14,7 @@
     <header class="page-header">
       <div>
         <p class="eyebrow">数学学习路径</p>
-        <h1>MathPath <span class="example-badge">学习工作台 v0.5.0</span></h1>
+        <h1>MathPath <span class="example-badge">学习工作台 v0.5.1</span></h1>
       </div>
       <div class="header-tools" aria-label="学习进度工具">
         <button id="library-button" class="secondary-button" type="button" aria-haspopup="dialog" aria-controls="library-panel">历史 / 项目</button>
@@ -275,14 +275,14 @@
         <button id="model-settings-close" class="tool-button" type="button">关闭</button>
       </div>
       <div class="model-settings-body">
-        <p id="model-settings-description" class="model-settings-description">选择 ChatGPT 授权，或接入你自己的 API。API 密钥仅保存在本机，使用 Windows 加密保护。请直接在下方输入密钥。</p>
+        <p id="model-settings-description" class="model-settings-description">默认接入 DeepSeek（交大平台）；填入你自己的平台密钥后保存即可使用。也可选择其他 API 或 ChatGPT 授权。API 密钥仅保存在本机，使用 Windows 加密保护。</p>
         <p id="model-settings-active" class="model-settings-active">正在读取本机配置…</p>
         <form id="model-settings-form" autocomplete="off">
           <div class="model-setting-field">
             <label for="model-provider">使用方式</label>
             <select id="model-provider">
+              <option value="api">API（DeepSeek / 自定义平台）</option>
               <option value="chatgpt">ChatGPT 授权</option>
-              <option value="api">自定义 API</option>
             </select>
           </div>
           <div id="chatgpt-login-section" class="chatgpt-login-section">
@@ -291,19 +291,27 @@
             <p id="chatgpt-login-status" class="chatgpt-login-status" role="status" aria-live="polite">打开设置后读取本次登录进度。</p>
           </div>
           <div id="model-api-fields" class="model-api-fields" hidden>
+            <div class="model-setting-field model-preset-field">
+              <label for="model-api-preset">平台预设</label>
+              <select id="model-api-preset" aria-describedby="model-api-preset-note">
+                <option value="sjtu_deepseek">DeepSeek（交大平台，默认）</option>
+                <option value="custom">自定义 API</option>
+              </select>
+              <p id="model-api-preset-note" class="model-setting-note">选择预设只填写连接参数；保存或测试都由你手动触发。交大平台需要该平台签发的 API 密钥。</p>
+            </div>
             <div class="model-setting-field">
               <label for="model-base-url">基础 API 地址</label>
-              <input id="model-base-url" type="url" maxlength="2048" placeholder="https://api.openai.com/v1" autocomplete="off" spellcheck="false" aria-describedby="model-base-url-note">
+              <input id="model-base-url" type="url" maxlength="2048" placeholder="https://models.sjtu.edu.cn/api/v1" autocomplete="off" spellcheck="false" aria-describedby="model-base-url-note">
               <p id="model-base-url-note" class="model-setting-note">填写平台提供的基础地址，通常以 /v1 结尾。不要填写完整的聊天请求路径。</p>
             </div>
             <div class="model-setting-field">
               <label for="model-model">模型 ID</label>
-              <input id="model-model" type="text" maxlength="200" placeholder="填写平台提供的确切模型 ID" autocomplete="off" spellcheck="false">
+              <input id="model-model" type="text" maxlength="200" placeholder="deepseek-reasoner" autocomplete="off" spellcheck="false">
             </div>
             <div class="model-setting-field">
               <label for="model-api-key">API 密钥</label>
               <input id="model-api-key" type="password" maxlength="4096" autocomplete="off" spellcheck="false" placeholder="输入你的 API 密钥" aria-describedby="model-api-key-note">
-              <p id="model-api-key-note" class="model-setting-note">留空会保留已保存的密钥。密钥不会写入浏览器进度或导出文件，也不会回填显示。</p>
+              <p id="model-api-key-note" class="model-setting-note">请填写当前平台的 API 密钥。仅在基础地址不变时可留空保留已存密钥；密钥不会回填显示或写入导出文件。</p>
             </div>
             <div class="model-setting-columns">
               <div class="model-setting-field">
@@ -332,7 +340,7 @@
             <button id="model-settings-test" class="secondary-button" type="button" disabled>测试已保存 API（可能计费）</button>
             <button id="model-settings-clear" class="text-button" type="button" disabled>清除已存密钥</button>
           </div>
-          <p class="model-setting-note">修改后请先保存，再测试。清除密钥会切回 ChatGPT 授权。</p>
+          <p class="model-setting-note">修改后请先保存，再测试。清除密钥会保留当前连接参数；再次使用 API 前需重新填写密钥。</p>
         </form>
       </div>
     </section>

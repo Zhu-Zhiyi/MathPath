@@ -137,6 +137,8 @@ def _generate_chatgpt(prompt, configuration, instructions, json_schema):
 
 def _generate_api(prompt, configuration, instructions, json_schema):
     # 禁止自动跟随重定向；同一调用失败也不重试、不换模型服务或请求格式。
+    if not isinstance(configuration.api_key, str) or not configuration.api_key.strip():
+        raise ModelError("使用 API 前，请在“模型 / API 设置”填写并保存该平台的 API 密钥。")
     try:
         with DefaultHttpxClient(follow_redirects=False) as transport:
             with OpenAI(api_key=configuration.api_key, base_url=configuration.base_url, max_retries=0,

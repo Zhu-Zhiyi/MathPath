@@ -1,6 +1,8 @@
 """Settings boundary, secret-free responses, explicit testing, and provider cache identity."""
 from dataclasses import replace
 import json
+from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -8,6 +10,8 @@ from fastapi.testclient import TestClient
 
 import lesson_builder as builder
 import main
+import model_settings as settings
+import llm_client
 from model_settings import GenerationConfig, SettingsError
 from test_lesson_cache import generated_card, graph_with_routes
 
@@ -50,6 +54,24 @@ class ModelSettingsApiTests(unittest.TestCase):
         save.assert_called_once_with(data)
         clear.assert_called_once_with()
         model.assert_not_called()
+
+    def test_fresh_deepseek_settings_are_readable_but_explicit_test_needs_own_key(self):
+        with tempfile.TemporaryDirectory(prefix="mathpath-deepseek-api-") as directory, \
+             patch.object(settings, "SETTINGS_FILE", Path(directory) / "api_settings.dpapi"), \
+             patch.object(settings, "protect_bytes", side_effect=AssertionError("no key storage on reads")), \
+             patch.object(llm_client, "OpenAI", side_effect=AssertionError("missing key must stop before SDK")) as sdk, \
+             patch.object(llm_client, "get_usable_session", side_effect=AssertionError("no fallback to OAuth")) as oauth:
+            public = self.client.get("/settings/model")
+            self.assertEqual(public.status_code, 200)
+            self.assertEqual(public.json()["base_url"], "https://models.sjtu.edu.cn/api/v1")
+            self.assertEqual(public.json()["model"], "deepseek-reasoner")
+            self.assertFalse(public.json()["has_api_key"])
+            tested = self.client.post("/settings/model/test")
+            self.assertEqual(tested.status_code, 503)
+            self.assertIn("API 密钥", tested.json()["detail"])
+            self.assertFalse(settings.SETTINGS_FILE.exists())
+            sdk.assert_not_called()
+            oauth.assert_not_called()
 
     def test_invalid_json_or_oversized_config_does_not_echo_submitted_secret(self):
         with patch.object(main, "save_settings") as save:

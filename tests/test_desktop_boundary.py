@@ -1,12 +1,16 @@
 """Desktop requests must originate from their own loopback page, never a foreign site."""
 import sys
+from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 import chatgpt_login
+import llm_client
 import main
+import model_settings
 
 
 class DesktopBoundaryTests(unittest.TestCase):
@@ -68,6 +72,25 @@ class DesktopLoginHintTests(unittest.TestCase):
             self.assertEqual(str(chatgpt_login.LoginError(message)), message)
         with patch.object(sys, "frozen", True, create=True):
             self.assertEqual(str(chatgpt_login.OAuthTransportError("tls")), chatgpt_login.TRANSPORT_MESSAGES["tls"])
+
+
+class DesktopDefaultProviderTests(unittest.TestCase):
+    def test_fresh_deepseek_default_cannot_read_environment_key_or_open_client(self):
+        with tempfile.TemporaryDirectory(prefix="mathpath-desktop-default-") as temporary:
+            settings_file = Path(temporary) / "api_settings.dpapi"
+            with patch.object(model_settings, "SETTINGS_FILE", settings_file), \
+                    patch.dict("os.environ", {"OPENAI_API_KEY": "synthetic-environment-key"}), \
+                    patch.object(llm_client, "OpenAI") as client, \
+                    patch.object(llm_client, "get_usable_session") as session:
+                public = model_settings.get_public_settings()
+                self.assertEqual((public["provider"], public["base_url"], public["model"]),
+                                 ("api", "https://models.sjtu.edu.cn/api/v1", "deepseek-reasoner"))
+                self.assertFalse(public["has_api_key"])
+                with self.assertRaisesRegex(model_settings.SettingsError, "API 密钥"):
+                    llm_client.generate_text("synthetic offline boundary check")
+                client.assert_not_called()
+                session.assert_not_called()
+                self.assertFalse(settings_file.exists())
 
 
 if __name__ == "__main__":
