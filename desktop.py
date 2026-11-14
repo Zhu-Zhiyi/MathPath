@@ -22,10 +22,11 @@ import threading
 import time
 import urllib.request
 import urllib.error
+import webbrowser
 from uuid import uuid4
 
 APP_NAME = "MathPath"
-APP_VERSION = "0.5.1"
+APP_VERSION = "0.6.1"
 RESOURCE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 
 
@@ -45,6 +46,10 @@ class OfflineBoundary:
         import chatgpt_connection
         import chatgpt_login
         import llm_client
+        import lecture_provider
+        import research_memory
+        self.previous_notes_default=os.environ.get("MATHPATH_NOTES_DEFAULT_DIR")
+        os.environ["MATHPATH_NOTES_DEFAULT_DIR"]=str(app_data_dir()/"notebook")
 
         def block(counter):
             def forbidden(*args, **kwargs):
@@ -54,6 +59,8 @@ class OfflineBoundary:
 
         for module, name, counter in [
             (llm_client, "OpenAI", "model_requests"),
+            (lecture_provider, "_request", "model_requests"),
+            (research_memory, "_fetch_feed", "external_auth_requests"),
             (llm_client, "get_usable_session", "credential_reads"),
             (chatgpt_login, "get_usable_session", "credential_reads"),
             (chatgpt_login, "load_session", "credential_reads"),
@@ -68,6 +75,8 @@ class OfflineBoundary:
         for module, name, original in reversed(self.originals):
             setattr(module, name, original)
         self.originals.clear()
+        if self.previous_notes_default is None:os.environ.pop("MATHPATH_NOTES_DEFAULT_DIR",None)
+        else:os.environ["MATHPATH_NOTES_DEFAULT_DIR"]=self.previous_notes_default
 
 
 def app_data_dir() -> Path:
@@ -332,6 +341,7 @@ def self_test(server: LocalServer) -> dict:
         ("goal", "node_id", "node_label", "question", "response", "reason", "created_at")), "unresolved-question-retained-after-history-delete"
     example_checks = _check_multiple_examples(server, graph, lessons)
     backup_checks = _check_full_backup(server, graph, lessons[first_id], exercise, chat_turns)
+    companion_checks = _check_companion_resources(server)
     settings = server.request("settings/model")
     public_fields = {"provider", "base_url", "model", "api_format", "output_mode", "has_api_key", "revision"}
     assert set(settings) == public_fields and settings["has_api_key"] is False, "temporary-default-settings"
@@ -408,7 +418,31 @@ def self_test(server: LocalServer) -> dict:
             "offline_chat_two_turns": True, "chat_history_roundtrip": True,
             "chat_histories_isolated": True, "project_delete_retains_chat": True,
             "unresolved_problem_history": True, "unresolved_question_retained_after_history_delete": True,
-            "goal_scope_preflight": True, "verified_book_catalog": True, **example_checks, **backup_checks}
+            "goal_scope_preflight": True, "verified_book_catalog": True, **example_checks, **backup_checks, **companion_checks}
+
+
+def _check_companion_resources(server: LocalServer) -> dict:
+    """Check new packaged resources using the entry point's temporary data only."""
+    assert b"lecture-start" in server.request("classroom"), "classroom-page-bundled"
+    assert b"workspace-form" in server.request("research-workbench"), "research-page-bundled"
+    assert b"pair-allow" in server.request("canvas-setup"), "canvas-setup-bundled"
+    for name in ("classroom.js", "classroom_tutor.js", "research.js", "research_entry.js", "canvas_demo.js"):
+        assert len(server.request("static/" + name)) > 1000, "companion-script-bundled"
+    assert server.request("lectures") == [], "temporary-classroom-list"
+    profile = server.request("research/workspaces", {"title": "打包自检研究背景", "intent": "question", "question": "合成问题：有限维条件用在哪里？"})
+    theorem = server.request("research/theorems", {"name": "打包自检定理", "category": "nonstandard", "statement": "合成条目，仅用于检查 Markdown 保存。", "source": "打包测试", "workspace_id": profile["id"]})
+    text = server.request("research/theorems/" + theorem["id"] + "/markdown")
+    assert "打包自检定理" in text.decode("utf-8") and theorem["verified_by_user"] is False, "temporary-theorem-markdown"
+    assert server.request("canvas/pair/status")["connected"] is False, "no-pairing-bundled"
+    pair = server.request("canvas/pair", {"extension_id": "a" * 32})
+    assert len(pair["token"]) >= 40, "temporary-extension-pairing"
+    server.request("canvas/pair", method="DELETE")
+    assert server.request("canvas/pair/status")["connected"] is False, "extension-pairing-revoked"
+    assert server.request("notes/settings")["auto_memory"] is True, "automatic-memory-default"
+    disabled=server.request("notes/generate", {"enabled":False,"request_id":str(uuid4()),"note_type":"A","content_date":datetime.now().date().isoformat(),"source_kind":"text","source_text":"合成自检。"})
+    assert disabled["status"]=="disabled", "note-export-opt-in"
+    return {"classroom_resources": True, "research_resources": True, "theorem_markdown_roundtrip": True,
+            "extension_pairing_roundtrip": True, "automatic_memory":True,"notes_resources":True,"notes_opt_in":True,"live_canvas_tested": False, "new_flow_real_model_calls": 0}
 
 
 def _check_multiple_examples(server: LocalServer, homology_graph: dict, homology_lessons: dict) -> dict:
@@ -527,10 +561,19 @@ def desktop_window(server: LocalServer, directory: Path, smoke: bool = False) ->
     webview.settings["ALLOW_FILE_URLS"] = False
     webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
     webview.settings["IGNORE_SSL_ERRORS"] = False
-    window = webview.create_window(APP_NAME, server.url, width=1320, height=880,
+    class NotesApi:
+        _window = None
+
+        def choose_notes_folder(self):
+            selected = self._window.create_file_dialog(webview.FileDialog.FOLDER)
+            return str(selected[0]) if selected else None
+
+    notes_api = NotesApi()
+    window = webview.create_window(APP_NAME, server.url, width=1320, height=880, js_api=notes_api,
                                    min_size=(760, 600), text_select=True,
                                    background_color="#edf1f5")
     result = {}
+    notes_api._window = window
 
     def notify(message: str, title: str = APP_NAME) -> None:
         ctypes.windll.user32.MessageBoxW(None, message, title, 0x40)
@@ -543,6 +586,7 @@ def desktop_window(server: LocalServer, directory: Path, smoke: bool = False) ->
     menu = [Menu(APP_NAME, [
         MenuAction("模型/API 设置…", lambda: window.evaluate_js("document.getElementById('model-settings-button').click()")),
         MenuAction("连接 ChatGPT…", connect_chatgpt),
+        MenuAction("Canvas 伴学设置（在浏览器打开）…", lambda: webbrowser.open(server.url + "research-workbench")),
         MenuAction("使用说明", lambda: notify(
             "同调、秩—零度定理和 ε–δ 极限证明三个样例可从下拉框选择并直接学习，无需登录。\n\n"
             "新用户默认使用交大平台的 DeepSeek（deepseek-reasoner）。生成自己的学习图前，请点击「MathPath → 模型/API 设置」，填写自己的交大平台 API 密钥后保存；也可切换 ChatGPT 或其他 API。\n\n"

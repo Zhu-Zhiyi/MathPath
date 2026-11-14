@@ -16,6 +16,7 @@ from pydantic import (BaseModel, BeforeValidator, ConfigDict, Field, ValidationE
 from graph_builder import KnowledgeGraph, NodeId, SourceNote, StudyTask
 from llm_client import MODEL, generate_text
 from model_settings import config_identity, resolve_generation_config
+from memory_models import MemoryCandidate
 
 
 class Exercise(BaseModel):
@@ -181,6 +182,7 @@ class Lesson(BaseModel):
     math_context: str = Field(default="", max_length=1500)
     source_notes: list[SourceNote] = Field(default_factory=list, max_length=6)
     learning_tasks: list[StudyTask] = Field(default_factory=list, max_length=8)
+    memories: list[MemoryCandidate] = Field(default_factory=list,max_length=4)
 
     @classmethod
     def model_json_schema(cls, *args, **kwargs):
@@ -266,6 +268,8 @@ LESSON_INSTRUCTIONS = """你是 MathPath 的数学节点学习卡编写器。
     rubric 给 2—4 个可核对理由或条件，接受其他正确解法，不用关键词字符串判断数学正确。
     开放题 format=open、options=[]、correct_index=null；选择题恰有一个正确选项。
 """
+
+LESSON_INSTRUCTIONS += "\n你主动将本次实际讲到的定理放入memories供自动记忆，保存完整版本、假设、量词和疑问；不是定理则留空。非标准定理不可只存名称。candidate_memory仅供回查，不是已证事实。"
 
 _EXAMPLE_DIR = Path(__file__).resolve().parent / "examples"
 _EXAMPLES = {
@@ -377,6 +381,7 @@ def build_lesson(graph: KnowledgeGraph, node_id: str) -> Lesson:
         raise LessonError("所选知识点不在当前学习图中。")
     lesson = _curated_lesson(graph, node_id)
     if lesson is not None:
+        _remember_lesson(lesson,graph,node_id)
         return lesson
     configuration = resolve_generation_config(default_model=MODEL)
     schema = Lesson.model_json_schema()
@@ -405,6 +410,7 @@ def build_lesson(graph: KnowledgeGraph, node_id: str) -> Lesson:
             raise LessonError("同一学习卡仍在生成，请稍后重新打开。") from None
     try:
         lesson = _generate_lesson(graph, node_id, schema, configuration)
+        _remember_lesson(lesson,graph,node_id)
         with _cache_lock:
             now = monotonic()
             for expired_key in [item for item, (expires, _) in _lesson_cache.items() if expires <= now]:
@@ -425,7 +431,8 @@ def build_lesson(graph: KnowledgeGraph, node_id: str) -> Lesson:
 
 
 def _generate_lesson(graph: KnowledgeGraph, node_id: str, schema: dict, configuration) -> Lesson:
-    prompt = json.dumps({"selected_node_id": node_id, "graph": graph.model_dump()}, ensure_ascii=False)
+    from research_memory import recall_candidates
+    prompt = json.dumps({"selected_node_id": node_id, "graph": graph.model_dump(),"candidate_memory":recall_candidates(None," ".join(n.label for n in graph.nodes if n.id==node_id))}, ensure_ascii=False)
     # Authentication and model failures propagate to the API's existing safe error handler.
     # A generated graph never receives an unrelated sample card after a failed request.
     output = generate_text(prompt, model=configuration.model, configuration=configuration,
@@ -448,3 +455,11 @@ def _generate_lesson(graph: KnowledgeGraph, node_id: str, schema: dict, configur
     for task in lesson.learning_tasks:
         task.source = "generated"
     return lesson
+
+
+def _remember_lesson(lesson,graph,node_id):
+    from research_memory import remember
+    entries=[m.model_dump() for m in lesson.memories]
+    if not entries and lesson.source=="curated_example" and "定理" in lesson.title:
+        entries=[{"name":lesson.title,"category":"common","statement":lesson.definition,"assumptions":[],"uncertainties":["自动归档的学习卡；请核对具体条件和采用版本。"],"statement_complete":False,"intuition":lesson.intuition,"proof_idea":lesson.proof_idea}]
+    return remember(entries,source_key="lesson:"+sha256(_canonical_graph(graph).encode()).hexdigest()+":"+node_id,source="MathPath 学习卡："+lesson.title+"；保留来源核对状态。")

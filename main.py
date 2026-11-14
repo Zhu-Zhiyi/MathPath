@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
@@ -26,6 +27,11 @@ from learning_guidance import (GoalScopeInput, ReferenceBooksInput, analyze_goal
                               get_reference_books)
 from study_builder import StudyError, build_learning_feedback, get_study_plan, get_study_tasks
 from teaching_help import ChatInput, HelpInput, build_learning_chat, build_learning_help
+from lecture_routes import router as lecture_router
+from lecture_store import shutdown_workers
+from canvas_companion import router as canvas_router, bridge_guard
+from research_memory import router as research_router
+from note_service import router as notes_router
 
 PROJECT_DIR = Path(__file__).resolve().parent
 STATIC_DIR = PROJECT_DIR / "static"
@@ -38,13 +44,23 @@ class LocalStaticFiles(StaticFiles):
         return response
 
 
-app = FastAPI(title="MathPath", version="0.5.1")
+@asynccontextmanager
+async def app_lifespan(application):
+    try:
+        yield
+    finally:
+        shutdown_workers()
+
+
+app = FastAPI(title="MathPath", version="0.6.1", lifespan=app_lifespan)
 app.state.desktop_local_only = bool(getattr(sys, "frozen", False) or os.environ.get("MATHPATH_DESKTOP"))
 
 
 @app.middleware("http")
 async def desktop_origin_guard(request: Request, call_next):
-    if app.state.desktop_local_only or request.url.path.startswith(("/settings/", "/library/", "/study/")):
+    if request.url.path.startswith("/canvas-bridge/"):
+        return await bridge_guard(request, call_next)
+    if app.state.desktop_local_only or request.url.path.startswith(("/settings/", "/library/", "/study/", "/lectures", "/canvas", "/research", "/notes")):
         server = request.scope.get("server")
         port = server[1] if server else None
         expected_host = "127.0.0.1" if port == 80 else f"127.0.0.1:{port}"
@@ -56,12 +72,34 @@ async def desktop_origin_guard(request: Request, call_next):
 
 
 app.mount("/static", LocalStaticFiles(directory=STATIC_DIR), name="static")
+app.include_router(lecture_router)
+app.include_router(canvas_router)
+app.include_router(research_router)
+app.include_router(notes_router)
 
 
 @app.get("/", response_class=FileResponse, include_in_schema=False)
 def home():
     return FileResponse(STATIC_DIR / "index.html", media_type="text/html",
                         headers={"Cache-Control": "no-store"})
+
+
+@app.get("/classroom", response_class=FileResponse, include_in_schema=False)
+def classroom():
+    return FileResponse(STATIC_DIR / "classroom.html", media_type="text/html",
+                        headers={"Cache-Control": "no-store"})
+
+
+@app.get("/canvas-setup", include_in_schema=False)
+@app.get("/research-workbench", include_in_schema=False)
+def research_workbench():
+    return FileResponse(STATIC_DIR / "research.html", media_type="text/html", headers={
+        "Cache-Control": "no-store", "Content-Security-Policy": "frame-ancestors 'none'", "X-Frame-Options": "DENY"})
+
+
+@app.get("/canvas-demo", include_in_schema=False)
+def canvas_demo():
+    return FileResponse(STATIC_DIR / "canvas_demo.html", media_type="text/html", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/examples", include_in_schema=False)
@@ -78,6 +116,7 @@ class GoalInput(BaseModel):
 
     text: str = Field(min_length=1, max_length=5000)
     mode: Literal["intuition", "application", "proof"] | None = None
+    workspace_id: str | None = None
 
     @field_validator("text")
     @classmethod
@@ -109,6 +148,9 @@ def health():
 
 @app.post("/analyze", response_model=KnowledgeGraph)
 def analyze(body: GoalInput):
+    if body.workspace_id:
+        from research_memory import workspace, wrap
+        return invoke_model(build_graph, body.text, mode=body.mode, research_context=wrap(workspace, body.workspace_id))
     return (invoke_model(build_graph, body.text, mode=body.mode) if body.mode is not None
             else invoke_model(build_graph, body.text))
 

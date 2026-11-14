@@ -8,15 +8,19 @@
   <link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
   <script src="/static/vendor/katex/katex.min.js" defer></script>
   <script src="/static/app.js?v=0.4.2" defer></script>
+  <script src="/static/research_entry.js" defer></script>
+  <script src="/static/note_features.js" defer></script>
 </head>
 <body>
   <main class="page">
     <header class="page-header">
       <div>
         <p class="eyebrow">数学学习路径</p>
-        <h1>MathPath <span class="example-badge">学习工作台 v0.5.1</span></h1>
+        <h1>MathPath <span class="example-badge">学习工作台 v0.6.1 · 预览版</span></h1>
       </div>
       <div class="header-tools" aria-label="学习进度工具">
+        <a href="/research-workbench" class="secondary-button" style="text-decoration:none">Canvas 伴学 / 科研记忆</a>
+        <button id="classroom-button" class="secondary-button" type="button">课堂解析</button>
         <button id="library-button" class="secondary-button" type="button" aria-haspopup="dialog" aria-controls="library-panel">历史 / 项目</button>
         <button id="problems-button" class="secondary-button" type="button" aria-haspopup="dialog" aria-controls="library-panel">未解决问题</button>
         <button id="model-settings-button" class="secondary-button model-settings-button" type="button" aria-haspopup="dialog" aria-controls="model-settings-panel">模型 / API 设置</button>
@@ -43,6 +47,7 @@
         <div class="example-tools"><label for="example-select" class="visually-hidden">选择审核过的离线样例</label><select id="example-select"><option value="homology">同调群为何取商</option></select><button id="example-button" class="secondary-button" type="button">载入离线样例</button></div>
       </div>
       <form id="goal-form">
+        <div class="learning-mode-row"><label for="research-workspace">研究背景（可选）</label><select id="research-workspace"><option value="">本次只学习</option></select><a href="/research-workbench">先说明研究问题 / 探索意向</a><p id="research-entry-note">选定背景用于下一次构图，不改写现有历史。打开此处不会调用模型。</p></div>
         <label class="visually-hidden" for="goal-input">数学学习目标或短文本</label>
         <textarea id="goal-input" rows="2" maxlength="5000" placeholder="例如：我知道同调群的定义，但想理解为什么要把循环对边界取商。" aria-describedby="input-note"></textarea>
         <div class="learning-mode-row"><label for="study-mode">这次主要想达到</label><select id="study-mode"><option value="intuition">建立直觉</option><option value="application">学会计算与使用</option><option value="proof">能够说明与证明</option><option value="repair">补齐当前卡点</option></select><p>模式用于新目标和当前先修推荐；已有练习围绕原目标。路线依据自报状态，并非学习难度测量。</p></div>
@@ -184,6 +189,7 @@
         <section id="lesson-prerequisites" class="prerequisite-section" aria-labelledby="prerequisite-heading">
           <h3 id="prerequisite-heading">先修内容</h3>
           <p id="prerequisite-rule" class="prerequisite-rule"></p>
+          <p id="lesson-unlock-preview" class="lesson-unlock-preview" hidden></p>
           <div id="prerequisite-groups" class="prerequisite-groups"></div>
         </section>
         <p id="lesson-status" class="lesson-status" role="status" aria-live="polite"></p>

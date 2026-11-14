@@ -23,10 +23,12 @@ import zlib
 import zipfile
 
 PROJECT = Path(__file__).resolve().parents[1]
-VERSION = "0.5.1"
+VERSION = "0.6.1"
 MODULES = ["desktop.py", "main.py", "chatgpt_login.py", "graph_builder.py",
            "llm_client.py", "lesson_builder.py", "planner.py", "model_settings.py", "chatgpt_connection.py",
-           "library_models.py", "library_store.py", "study_builder.py", "teaching_help.py", "learning_guidance.py"]
+           "library_models.py", "library_store.py", "study_builder.py", "teaching_help.py", "learning_guidance.py",
+           "lecture_models.py", "lecture_provider.py", "lecture_store.py", "lecture_routes.py", "lecture_tutor.py",
+           "canvas_companion.py", "research_memory.py", "note_service.py", "memory_models.py"]
 EXCLUDED = {".mathpath", ".venv", "outputs", "evals", "tests", "__pycache__", "results"}
 FORBIDDEN = re.compile(r"(^|/)(\.mathpath|\.venv|evals|results|outputs|EBWebView|WebView2UserData)(/|$)|chatgpt_session\.dpapi|api_settings\.dpapi|host_id\.json|\.(sqlite3?|db)(?:[-.]|$)|(^|/)(desktop|state|workspace|progress)\.json$", re.IGNORECASE)
 PUBLIC_PROXY_LICENSE = "packaging/licenses/proxy_tools-LICENSE.txt"
@@ -221,9 +223,9 @@ def license_notices(destination: Path) -> list[Path]:
     return files
 
 
-README = """MathPath 0.5.1 — Windows 桌面版
+README = """MathPath 0.6.1 — Windows 桌面预览版
 
-运行：双击 MathPath-desktop-0.5.1-windows-x64.exe。无需安装 Python，无需保持命令行窗口。
+运行：先关闭旧版，再双击 MathPath-desktop-0.6.1-windows-x64.exe。无需安装 Python，无需保持命令行窗口。
 建议 Windows 10/11 64 位；需要 .NET Framework 4.6.2 或更新版本、Microsoft Edge WebView2 Runtime。
 如果缺少 WebView2，可从微软官网安装：https://developer.microsoft.com/microsoft-edge/webview2/
 
@@ -282,11 +284,23 @@ AI 反馈仍需核对；一次答对不表示整个知识点已经掌握，模�
 如果该端口被别的程序占用，MathPath 会提示先关闭占用程序；不会静默切换端口导致进度无法恢复。
 
 离线自检（不登录、不调用模型）：
-MathPath-desktop-0.5.1-windows-x64.exe --self-test --report self-test.json
+MathPath-desktop-0.6.1-windows-x64.exe --self-test --report self-test.json
 真实窗口自检（会短暂打开并自动关闭窗口）：
-MathPath-desktop-0.5.1-windows-x64.exe --smoke-window --report window-test.json
+MathPath-desktop-0.6.1-windows-x64.exe --smoke-window --report window-test.json
 
-本版本是可运行原型。发行包尚未进行 Windows 代码签名。
+新增：课堂解析、Canvas 回放伴学、研究起点和定理 Markdown 记忆。
+v0.6.1：AI 自动整理记忆，无需逐条保存；Canvas 五步连接指引；可勾选生成 Type A/B/C 笔记。
+笔记目录可选择，按日期和课程分类，C 单独存放。默认保存 Markdown 与 TeX，PDF 需本机 XeLaTeX。
+可选同步到指定目录并检查哈希，不覆盖旧笔记。模型整理的内容仍是需核对的草稿。
+首页“Canvas 伴学 / 科研记忆”进入工作台；主程序菜单也可在浏览器打开伴学设置，
+此时浏览器地址栏中的 http://127.0.0.1:端口 就是扩展应填写的本机地址。
+先在 Chrome / Edge 加载配套扩展，再连接 MathPath，关联同一节已解析课堂、校准时间。
+解释、提问与研究指引在你点击时调用当前数学模型；文献检索只发送单独填写的公开关键词。
+需用扩展“伴学全屏”；真实 Canvas 播放器兼容性仍需现场验证。
+课堂视频解析另用你自己填写的多模态模型连接；扩展不会自动读取或上传回放视频。
+定理、研究工作区与课堂材料未包含在原“完整备份学习库”中，请单独保管相应数据文件夹。
+
+本版本是可运行预览原型。发行包尚未进行 Windows 代码签名。
 第三方许可见 licenses 目录；构建与运行验证见同目录 JSON 报告。
 """
 

@@ -362,6 +362,13 @@ input[type="checkbox"], input[type="radio"] { width: 18px; height: 18px; margin:
 .prerequisite-section { min-width: 0; margin: 0 0 22px; }
 .prerequisite-section h3 { margin: 0 0 9px; color: #345735; font-size: 17px; }
 .prerequisite-rule, .prerequisite-group-status { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.8; }
+.prerequisite-group.recommended-prerequisite-group { border-color: #85a77e; background: #f4f8ef; }
+.unlock-preview { margin-top: 9px; color: #526c50; font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
+.unlock-preview summary { cursor: pointer; }
+.unlock-preview p { margin: 7px 0; }
+.unlock-preview ul { margin: 6px 0; padding-left: 18px; }
+.unlock-preview .node-link { font-size: 12px; }
+.lesson-unlock-preview { margin: 0 0 14px; padding: 10px 12px; border-left: 3px solid #88a581; background: #f3f7ee; color: #526c50; font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
 .prerequisite-groups { display: grid; gap: 15px; }
 .prerequisite-group { min-width: 0; border: 1px solid #dce5d5; border-radius: 10px; padding: 14px; background: #fafcf6; }
 .prerequisite-group h4 { margin: 0 0 7px; color: #416236; font-size: 14px; line-height: 1.8; }

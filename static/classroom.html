@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MathPath · 课堂解析</title>
+  <link rel="stylesheet" href="/static/classroom.css">
+  <link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
+  <script src="/static/vendor/katex/katex.min.js" defer></script>
+  <script src="/static/classroom.js" defer></script>
+  <script src="/static/classroom_tutor.js" defer></script>
+  <script src="/static/note_features.js" defer></script>
+</head>
+<body>
+  <main class="classroom-page">
+    <header class="classroom-header">
+      <a href="/" class="brand" aria-label="返回 MathPath 学习地图">MathPath<span>课堂解析</span></a>
+      <a href="/" class="back-link">← 返回学习地图</a>
+    </header>
+    <section class="classroom-intro" aria-labelledby="classroom-heading">
+      <div><p class="eyebrow">从一堂课，走向真正理解</p><h1 id="classroom-heading">把课堂展开来学</h1><p class="intro-text">上传视频，沿时间线梳理定义、板书公式、证明与例题。遇到卡点，回到原片段核对，再带着具体问题继续学习。</p></div>
+      <div class="intro-mark" aria-hidden="true"><span>看见推导</span><span>听懂来由</span><span>逐段回看</span></div>
+    </section>
+    <div class="classroom-layout">
+      <aside class="lecture-library" aria-labelledby="lecture-history-heading">
+        <div class="section-heading"><h2 id="lecture-history-heading">我的课堂</h2><button id="lecture-refresh" class="icon-button" type="button" aria-label="刷新课堂记录">↻</button></div>
+        <p class="small-note">视频与解析保存在这台电脑。</p>
+        <ul id="lecture-history" class="lecture-history"></ul>
+        <p id="lecture-history-status" class="small-note" role="status" aria-live="polite">正在读取课堂记录…</p>
+        <div class="library-footnote"><span class="small-label">留住学习过程</span><p>课堂视频和解析独立保存；现有“完整备份学习库”不包含这些文件。请单独导出解析，并保留原视频。</p></div>
+      </aside>
+      <div class="classroom-main">
+        <section class="upload-card" aria-labelledby="upload-heading">
+          <div class="section-heading"><div><span class="step-label">01 · 选择课堂</span><h2 id="upload-heading">上传一段课堂视频</h2></div><span class="local-badge">先存到本机</span></div>
+          <label id="video-dropzone" class="video-dropzone" for="lecture-video-file" role="button" tabindex="0" aria-controls="lecture-video-file" aria-describedby="video-file-note"><span class="upload-icon" aria-hidden="true">＋</span><span><strong>选择视频文件</strong><small>也可以把文件拖到这里 · MP4 / WebM / MOV / AVI · 不超过 2 GiB</small></span></label>
+          <input id="lecture-video-file" class="visually-hidden" type="file" tabindex="-1" accept="video/mp4,video/webm,video/quicktime,video/x-msvideo,.mp4,.webm,.mov,.m4v,.avi" aria-describedby="video-file-note">
+          <p id="video-file-note" class="small-note">选择或上传文件不会调用视频模型。浏览器能否播放取决于原视频编码；MP4（H.264 / AAC）通常更方便回看。</p>
+          <div class="upload-action-row"><p id="selected-video" class="selected-video">还没有选择文件</p><button id="lecture-upload" class="primary-button" type="button" disabled>保存视频到课堂</button><button id="lecture-upload-cancel" class="text-button" type="button" hidden>取消上传</button></div>
+          <progress id="lecture-upload-progress" max="100" value="0" aria-label="本机视频上传进度" hidden></progress>
+          <p id="lecture-upload-status" class="status-line" role="status" aria-live="polite"></p>
+        </section>
+        <p id="classroom-error" class="error-banner" role="alert" hidden></p>
+        <section id="lecture-workspace" class="lecture-workspace" aria-labelledby="current-lecture-heading" hidden>
+          <div class="lecture-heading"><div><span class="step-label">02 · 回看与理解</span><h2 id="current-lecture-heading" tabindex="-1"></h2><p id="lecture-meta" class="small-note"></p></div><span id="lecture-status-badge" class="status-badge"></span></div>
+          <div class="lecture-reading-layout">
+            <div class="video-column">
+              <div class="video-sticky">
+                <div class="video-shell"><video id="lecture-player" controls preload="metadata" playsinline aria-label="当前课堂视频"></video></div>
+                <p id="lecture-player-note" class="small-note">点击解析旁的时间，回到视频中的对应位置。</p>
+                <details id="lecture-model-settings" class="video-model-settings" open>
+                  <summary>视频解析设置</summary>
+                  <p class="small-note">使用 Google 官方 Gemini 视频服务，同时读取声音与画面。这里单独填写视频 API 密钥，不沿用 DeepSeek 问答密钥。</p>
+                  <form id="lecture-analysis-form" autocomplete="off">
+                    <label for="lecture-api-key">Gemini API 密钥</label><input id="lecture-api-key" type="password" name="lecture-api-key" autocomplete="off" spellcheck="false" maxlength="4096" placeholder="仅用于这次解析，不保存到磁盘" aria-describedby="lecture-key-note">
+                    <p id="lecture-key-note" class="small-note">密钥只在本次页面和解析任务中使用。刷新页面后需重新填写。<a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">获取视频 API 密钥 ↗</a></p>
+                    <div class="model-fields"><div><label for="lecture-video-model">视频模型</label><input id="lecture-video-model" value="gemini-3.8-flash" maxlength="120" spellcheck="false" required></div><div><label for="lecture-chunk-seconds">每段长度</label><select id="lecture-chunk-seconds"><option value="180">3 分钟 · 更细</option><option value="300" selected>5 分钟 · 常规</option><option value="600">10 分钟 · 更长</option></select></div></div>
+                    <p id="lecture-request-estimate" class="small-note">视频时长确认后，将逐段处理整堂课。</p>
+                    <label class="consent-label"><input id="lecture-remote-consent" type="checkbox"><span>同意将此视频上传至 Google 的视频服务，并使用该密钥的额度。点击“开始解析”后才发送；分段请求可能产生费用。</span></label>
+                    <div class="analysis-actions"><button id="lecture-start" class="primary-button" type="submit">开始逐段解析</button><button id="lecture-cancel" class="secondary-button" type="button" hidden>停止后续解析</button></div>
+                  </form>
+                </details>
+                <div class="lecture-export-actions"><a id="lecture-export-markdown" class="secondary-link" href="#" download>导出 Markdown</a><a id="lecture-export-json" class="secondary-link" href="#" download>导出完整解析</a><button id="lecture-delete" class="text-button danger-text" type="button">删除此课堂</button></div>
+              </div>
+            </div>
+            <div class="analysis-column">
+              <section class="coverage-card" aria-labelledby="lecture-coverage-heading"><div class="section-heading"><h3 id="lecture-coverage-heading">这堂课解析到哪里了</h3><span id="lecture-coverage-value" class="coverage-value">尚未开始</span></div><progress id="lecture-analysis-progress" max="100" value="0" aria-label="视频时间区间处理进度"></progress><p id="lecture-job-status" class="status-line" role="status" aria-live="polite"></p><p id="lecture-coverage-note" class="small-note">按时间区间记录处理进度。模型读取的画面有采样，已处理不代表每个公式都已正确识别；数学内容仍需对照原视频核查。</p><p id="lecture-job-error" class="job-warning" hidden></p><p id="lecture-cleanup-warning" class="job-warning" hidden>云端文件删除尚未确认，请前往对应 Gemini 文件管理中检查；本地解析已保留。</p></section>
+              <section id="tutor-panel" class="tutor-panel" aria-labelledby="tutor-heading">
+                <p class="step-label">定位片段 → 说出卡点 → 做题确认</p>
+                <div class="section-heading"><h3 id="tutor-heading">这一步，为什么没跟上？</h3><button id="tutor-refresh" class="text-button" type="button">刷新诊断记录</button></div>
+                <p class="small-note">从片段旁点“这一步卡住了”，或在下面选择。我们先提出卡点假设，再用你的解释检验；诊断依据是已有课堂解析，需要时回看原视频。</p>
+                <label for="tutor-item">围绕哪个课堂内容</label><select id="tutor-item"></select>
+                <label for="tutor-question">你具体卡在哪里？</label><textarea id="tutor-question" rows="3" maxlength="3000" placeholder="例如：我知道核与像的定义，但没看懂这里为什么能把这组向量补成一组基。"></textarea>
+                <label for="tutor-context">你已经能做到什么（可选）</label><textarea id="tutor-context" rows="2" maxlength="1500" placeholder="例如：会求核和像，但不熟悉线性无关的证明。"></textarea>
+                <label class="consent-label"><input id="tutor-use-model" type="checkbox" checked><span>使用 MathPath 当前数学模型（如 DeepSeek）。点击诊断或提交解释才发送选中片段、问题与作答，不会重新上传视频。取消勾选可先做本地参考对照。</span></label>
+                <div class="analysis-actions"><button id="tutor-diagnose" class="primary-button" type="button">诊断这个卡点</button><button id="tutor-cancel" class="text-button" type="button" hidden>停止等待</button></div>
+                <p id="tutor-status" class="status-line" role="status" aria-live="polite">有课堂解析后即可选择内容。</p>
+                <label for="tutor-history">以前的卡点与作答</label><select id="tutor-history"><option value="">还没有诊断记录</option></select>
+                <div id="tutor-result"></div>
+              </section>
+              <div class="timeline-heading"><h3>逐段课堂笔记</h3><span class="review-badge">模型解析 · 待核对</span></div>
+              <p id="lecture-timeline-empty" class="timeline-empty">开始解析后，每完成一段就会在这里保存。无需等整堂课结束。</p>
+              <div id="lecture-clips" class="lecture-clips"></div>
+              <p id="lecture-partial-note" class="small-note" hidden></p>
+            </div>
+          </div>
+          <section id="lecture-delete-confirm" class="delete-confirm" role="alertdialog" aria-labelledby="lecture-delete-title" aria-describedby="lecture-delete-description" hidden><h3 id="lecture-delete-title">删除这条课堂记录？</h3><p id="lecture-delete-description"></p><div><button id="lecture-delete-no" class="secondary-button" type="button">保留课堂</button><button id="lecture-delete-yes" class="danger-button" type="button">确认删除</button></div></section>
+        </section>
+        <section id="classroom-welcome" class="classroom-welcome"><span class="welcome-line" aria-hidden="true"></span><h2>让每一段推导都有来处</h2><p>先上传视频，再选择模型开始解析。声音听不清、板书被遮挡、证明有跳步的地方，会作为待核对内容保留下来。</p><div><span>定义与符号</span><span>公式与证明</span><span>例题与习题</span><span>原片段定位</span></div></section>
+      </div>
+    </div>
+    <footer class="classroom-footer">MathPath · 课堂解析是学习辅助，解析内容与补充说明均需核查。</footer>
+  </main>
+</body>
+</html>

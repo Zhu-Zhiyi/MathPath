@@ -1,0 +1,3 @@
+# Third-party assets are hash-verified and must keep their original bytes.
+static/vendor/katex/** -text
+browser-extension/mathpath-canvas/vendor/katex/** -text

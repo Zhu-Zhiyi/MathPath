@@ -82,7 +82,7 @@ class LessonCacheTests(unittest.TestCase):
         self.assertEqual(generated_card()["definition"], second.definition)
         self.assertEqual("甲", second.exercise.options[0])
         self.assertEqual(generated_card() | {"followup_exercises": [], "illustration": None,
-                                            "math_context": "", "source_notes": [], "learning_tasks": []}, third.model_dump())
+                                            "math_context": "", "source_notes": [], "learning_tasks": [], "memories": []}, third.model_dump())
 
     def test_semantic_order_changes_share_cache_but_labels_and_and_or_do_not(self):
         graph = graph_with_routes()

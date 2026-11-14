@@ -58,6 +58,7 @@ const ui = {
   mixedPracticeButton: document.getElementById("mixed-practice-button"),
   mixedPracticeTasks: document.getElementById("mixed-practice-tasks"),
   lessonNotes: document.getElementById("lesson-notes"),
+  lessonUnlockPreview: document.getElementById("lesson-unlock-preview"),
   learningEvidence: document.getElementById("learning-evidence"),
   attemptHistory: document.getElementById("attempt-history"),
   adaptivePracticeTasks: document.getElementById("adaptive-practice-tasks"),
@@ -2160,7 +2161,7 @@ function refreshKnownIds() {
   knownIds = new Set([...mastery].filter(([, state]) => MASTERY_DIMENSIONS.every(key => state[key])).map(([id]) => id));
 }
 
-function validatePlan(value, submittedIds, submittedGraph) {
+function validatePlan(value, submittedIds, submittedGraph, submittedContext = null) {
   const byId = new Map(submittedGraph.nodes.map(node => [node.id, node]));
   if (!value || value.target_id !== submittedGraph.target_id || typeof value.completed !== "boolean") {
     throw new Error("invalid-plan");
@@ -2186,6 +2187,59 @@ function validatePlan(value, submittedIds, submittedGraph) {
   }
   if (value.focus_id !== undefined && value.focus_id !== null && !byId.has(value.focus_id)) {
     throw new Error("invalid-plan");
+  }
+  if (value.planning_known_ids !== undefined && !Array.isArray(value.planning_known_ids)) throw new Error("invalid-plan");
+  const planningKnown = new Set(value.planning_known_ids ?? value.known_ids);
+  if (value.planning_known_ids !== undefined && (
+      planningKnown.size !== value.planning_known_ids.length || [...planningKnown].some(id => !byId.has(id)) ||
+      [...submitted].some(id => !planningKnown.has(id)))) throw new Error("invalid-plan");
+  if (submittedContext) {
+    const { mode, mastery: submittedMastery = {} } = submittedContext;
+    if (value.mode !== undefined && value.mode !== mode) throw new Error("invalid-plan");
+    if (value.planning_known_ids !== undefined) {
+      const requirements = { intuition: ["definition", "intuition"], application: ["definition", "application"],
+        proof: MASTERY_DIMENSIONS, repair: MASTERY_DIMENSIONS };
+      const expected = new Set(submitted);
+      if (mode !== null && requirements[mode]) {
+        for (const node of submittedGraph.nodes) {
+          const state = submittedMastery[node.id];
+          const dimensions = node.required_dimensions?.length ? node.required_dimensions : requirements[mode];
+          if (state && dimensions.every(dimension => state[dimension] === true)) expected.add(node.id);
+        }
+      }
+      if (planningKnown.size !== expected.size || [...planningKnown].some(id => !expected.has(id))) throw new Error("invalid-plan");
+    }
+  }
+  const sameIds = (actual, expected) => Array.isArray(actual) && actual.length === expected.length &&
+    actual.every((id, index) => id === expected[index]);
+  if (value.prerequisite_groups !== undefined) {
+    const expectedCount = submittedGraph.nodes.reduce((total, node) => total + node.prerequisite_sets.length, 0);
+    if (!Array.isArray(value.prerequisite_groups) || value.prerequisite_groups.length !== expectedCount) throw new Error("invalid-plan");
+    const seen = new Set();
+    for (const item of value.prerequisite_groups) {
+      const group = byId.get(item?.node_id)?.prerequisite_sets[item?.group_index];
+      const key = `${item?.node_id}:${item?.group_index}`;
+      if (!group || !Number.isInteger(item.group_index) || seen.has(key) ||
+          !sameIds(item.prerequisite_ids, group) || !sameIds(item.satisfied_ids, group.filter(id => planningKnown.has(id))) ||
+          !sameIds(item.missing_ids, group.filter(id => !planningKnown.has(id))) ||
+          item.satisfied !== group.every(id => planningKnown.has(id)) ||
+          item.selected !== Boolean(value.selected_groups?.some(selected => selected.node_id === item.node_id && selected.group_index === item.group_index))) {
+        throw new Error("invalid-plan");
+      }
+      seen.add(key);
+    }
+  }
+  if (value.unlock_previews !== undefined) {
+    if (!Array.isArray(value.unlock_previews) || value.unlock_previews.length !== value.ready_ids.length) throw new Error("invalid-plan");
+    const seen = new Set();
+    for (const item of value.unlock_previews) {
+      if (!item || seen.has(item.node_id) || !value.ready_ids.includes(item.node_id) || !Array.isArray(item.newly_ready_ids)) throw new Error("invalid-plan");
+      const expected = value.blocked_ids.filter(id => byId.get(id).prerequisite_sets.some(group =>
+        group.every(parent => parent === item.node_id || planningKnown.has(parent))));
+      if (new Set(item.newly_ready_ids).size !== item.newly_ready_ids.length ||
+          item.newly_ready_ids.length !== expected.length || item.newly_ready_ids.some(id => !expected.includes(id))) throw new Error("invalid-plan");
+      seen.add(item.node_id);
+    }
   }
   return value;
 }
@@ -2552,8 +2606,9 @@ function addEdge(parent, sourceX, sourceY, endX, endY, satisfied, selected = fal
   parent.append(path);
 }
 
-function addGate(parent, x, y, label, satisfied, width, selected, faded) {
+function addGate(parent, x, y, label, satisfied, width, selected, faded, description = "") {
   const gate = svgElement("g", { class: `${selected ? "route-gate" : ""}${faded ? " faded" : ""}` });
+  if (description) gate.append(svgElement("title", {}, description));
   gate.append(svgElement("rect", {
     x: x - width / 2, y: y - 13, width, height: 26, rx: 13,
     class: `gate-card${satisfied ? " satisfied" : ""}`,
@@ -2571,6 +2626,7 @@ function renderGraph() {
   const hasSelection = Array.isArray(plan?.selected_ids);
   const selected = new Set(plan?.selected_ids || []);
   const selectedGroups = new Map((plan?.selected_groups || []).map(item => [item.node_id, item.group_index]));
+  const planningKnown = new Set(plan?.planning_known_ids || plan?.known_ids || []);
   const svg = svgElement("svg", {
     width: layout.width, height: layout.height,
     viewBox: `0 0 ${layout.width} ${layout.height}`,
@@ -2590,17 +2646,19 @@ function renderGraph() {
 
   for (const item of layout.positions.values()) {
     const multipleGroups = item.gates.length > 1;
-    const anySatisfied = item.gates.some(gate => gate.group.every(id => knownIds.has(id)));
+    const anySatisfied = item.gates.some(gate => gate.group.every(id => planningKnown.has(id)));
     for (const gate of item.gates) {
-      const satisfied = gate.group.every(id => knownIds.has(id));
+      const satisfiedCount = gate.group.filter(id => planningKnown.has(id)).length;
+      const satisfied = satisfiedCount === gate.group.length;
       const isSelected = selectedGroups.get(item.node.id) === gate.groupIndex;
       const faded = hasSelection && !isSelected;
       for (const id of gate.group) {
         const source = layout.positions.get(id);
-        addEdge(edges, source.center, source.y + source.height, gate.x, gate.y - 13, knownIds.has(id), isSelected, faded);
+        addEdge(edges, source.center, source.y + source.height, gate.x, gate.y - 13, planningKnown.has(id), isSelected, faded);
       }
       addEdge(edges, gate.x, gate.y + 13, item.center, multipleGroups ? item.y - 29 : item.y, satisfied, isSelected, faded);
-      addGate(gates, gate.x, gate.y, "全部", satisfied, 56, isSelected, faded);
+      addGate(gates, gate.x, gate.y, plan ? `全部 ${satisfiedCount}/${gate.group.length}` : "全部", satisfied, 80, isSelected, faded,
+        `先修组 ${gate.groupIndex + 1}：${plan ? `按当前目的满足 ${satisfiedCount}/${gate.group.length} 项` : "等待计算"}${isSelected ? "，当前推荐组" : ""}。组内需全部满足。`);
     }
     if (multipleGroups) {
       addGate(gates, item.center, item.y - 16, "任选一组", anySatisfied, 88, selected.has(item.node.id), hasSelection && !selected.has(item.node.id));
@@ -2705,7 +2763,16 @@ function locateNode(id) {
   node?.focus({ preventScroll: true });
 }
 
-function addNodeListItem(list, id, focused = false) {
+function unlockPreviewText(id) {
+  const preview = plan?.unlock_previews?.find(item => item.node_id === id);
+  if (!preview) return "";
+  const numbers = preview.newly_ready_ids.map(nodeId => `知识点 ${nodeNumber(nodeId)}`).join("、");
+  return numbers
+    ? `若按当前目的补齐这个知识点，新增可学：${numbers}。仅预览紧接着的一步，不修改掌握记录。`
+    : "若按当前目的补齐这个知识点，本图中暂不会新增可学内容。先修须整组满足；预览不修改掌握记录。";
+}
+
+function addNodeListItem(list, id, focused = false, showUnlockPreview = false) {
   const item = document.createElement("li");
   const button = document.createElement("button");
   button.type = "button";
@@ -2725,6 +2792,23 @@ function addNodeListItem(list, id, focused = false) {
     item.append(hint);
   }
   item.append(button);
+  const unlockPreview = plan?.unlock_previews?.find(entry => entry.node_id === id);
+  if (showUnlockPreview && unlockPreview) {
+    const preview = document.createElement("details");
+    preview.className = "unlock-preview";
+    preview.setAttribute("data-preview-node-id", id);
+    const title = document.createElement("summary");
+    title.textContent = "补齐后会新增哪些可学内容？";
+    const explanation = document.createElement("p");
+    explanation.textContent = unlockPreviewText(id);
+    preview.append(title, explanation);
+    if (unlockPreview.newly_ready_ids.length) {
+      const nodes = document.createElement("ul");
+      for (const nodeId of unlockPreview.newly_ready_ids) addNodeListItem(nodes, nodeId);
+      preview.append(nodes);
+    }
+    item.append(preview);
+  }
   list.append(item);
 }
 
@@ -2755,7 +2839,7 @@ function renderSummary() {
     ui.message.textContent = Array.isArray(plan.required_ids)
       ? `推荐路线还需学习 ${plan.required_ids.length} 个知识点，其中 ${recommendations.length} 个现在可学。`
       : `当前有 ${recommendations.length} 个可学知识点。`;
-    for (const id of recommendations) addNodeListItem(ui.ready, id, id === plan.focus_id);
+    for (const id of recommendations) addNodeListItem(ui.ready, id, id === plan.focus_id, true);
     if (recommendations.length === 0) {
       ui.empty.textContent = "暂时没有可学候选。请检查已掌握的知识点标记。";
       ui.empty.hidden = false;
@@ -2767,7 +2851,7 @@ function renderSummary() {
     if (Array.isArray(plan.recommended_ids) && plan.ready_ids.some(id => !plan.recommended_ids.includes(id))) {
       ui.allReadySection.hidden = false;
       ui.allReadyTitle.textContent = `全部当前可学候选（${plan.ready_ids.length}）`;
-      for (const id of plan.ready_ids) addNodeListItem(ui.allReadyList, id);
+      for (const id of plan.ready_ids) addNodeListItem(ui.allReadyList, id, false, true);
     }
   }
   if (plan?.explanation) { const p = document.createElement("p"); p.className = "study-note route-explanation"; p.textContent = plan.explanation; ui.ready.append(p); }
@@ -2781,23 +2865,26 @@ async function requestPlan() {
   planController = controller;
   const submittedGraph = graph;
   const submittedIds = graph.nodes.filter(node => knownIds.has(node.id)).map(node => node.id);
+  const submittedMode = ui.studyMode.value;
+  const submittedMastery = Object.fromEntries([...mastery].map(([id, state]) => [id, { ...state }]));
   const timer = setTimeout(() => controller.abort(), 20000);
   plan = null;
   pending = true;
   setPlanError("");
   renderGraph();
   renderSummary();
+  refreshPrerequisiteStatus();
   try {
     const response = await fetch("/plan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ graph: submittedGraph, known_ids: submittedIds, mode: ui.studyMode.value, mastery: Object.fromEntries(mastery) }),
+      body: JSON.stringify({ graph: submittedGraph, known_ids: submittedIds, mode: submittedMode, mastery: submittedMastery }),
       signal: controller.signal,
     });
     if (!response.ok) throw new Error("http");
     const value = await response.json();
     if (version !== planVersion) return;
-    plan = validatePlan(value, submittedIds, submittedGraph);
+    plan = validatePlan(value, submittedIds, submittedGraph, { mode: submittedMode, mastery: submittedMastery });
   } catch {
     if (version !== planVersion) return;
     setPlanError("无法更新学习状态。图和掌握标记已保留，请确认后端正在运行后重试。");
@@ -2808,6 +2895,7 @@ async function requestPlan() {
       pending = false;
       renderGraph();
       renderSummary();
+      refreshPrerequisiteStatus();
     }
   }
 }
@@ -2891,7 +2979,9 @@ function validateFollowupExercises(value) {
 
 function validateLesson(value, id) {
   requireLessonFields(value, ["node_id", "title", "definition", "intuition", "example", "proof_idea", "exercise", "source"],
-    ["followup_exercises", "illustration", "math_context", "source_notes", "learning_tasks"]);
+    ["followup_exercises", "illustration", "math_context", "source_notes", "learning_tasks", "memories"]);
+  if(value.memories!==undefined && (!Array.isArray(value.memories)||value.memories.length>4))throw new Error("invalid-lesson");
+  for(const m of value.memories||[]){requireLessonFields(m,["name","category","statement","assumptions","uncertainties","statement_complete"]);validateLessonText(m.name,180);validateLessonText(m.statement,16000);if(!["common","nonstandard"].includes(m.category)||typeof m.statement_complete!=="boolean"||!Array.isArray(m.assumptions)||m.assumptions.length>24||!Array.isArray(m.uncertainties)||m.uncertainties.length>16)throw new Error("invalid-lesson");for(const s of [...m.assumptions,...m.uncertainties])validateLessonText(s,1600);}
   if (value.node_id !== id || !["curated_example", "generated"].includes(value.source)) {
     throw new Error("invalid-lesson");
   }
@@ -2962,6 +3052,8 @@ function clearPrerequisitePreviews() {
   prerequisiteGroupViews = [];
   ui.prerequisiteGroups.replaceChildren();
   ui.prerequisiteRule.textContent = "";
+  ui.lessonUnlockPreview.textContent = "";
+  ui.lessonUnlockPreview.hidden = true;
 }
 
 function prerequisiteViewIsCurrent(view) {
@@ -2970,20 +3062,28 @@ function prerequisiteViewIsCurrent(view) {
 }
 
 function refreshPrerequisiteStatus() {
+  const planningKnown = new Set(plan?.planning_known_ids || plan?.known_ids || []);
   for (const view of prerequisiteViews) {
     if (!prerequisiteViewIsCurrent(view)) continue;
     const state = mastery.get(view.id) || emptyMastery();
     const marked = MASTERY_DIMENSIONS.filter(key => state[key]);
-    view.state.textContent = marked.length === 3
+    const reported = marked.length === 3
       ? "自报状态：自行标记全部掌握（3/3）"
       : marked.length
         ? `自报状态：已标记 ${marked.map(key => DIMENSION_LABELS[key]).join("、")}（${marked.length}/3）`
         : "自报状态：尚未标记掌握（0/3）";
+    view.state.textContent = `${reported}；${plan ? planningKnown.has(view.id) ? "已满足当前目的的先修要求。" : "当前目的所需的能力尚未补齐。" : pending ? "正在重新计算先修要求。" : "先修状态尚未计算完成。"}`;
   }
   for (const view of prerequisiteGroupViews) {
-    view.status.textContent = view.ids.every(id => knownIds.has(id))
-      ? "此组已全部自行标记掌握。" : "此组尚有未全部标记掌握的内容。";
+    const selected = Boolean(plan?.selected_groups?.some(item => item.node_id === view.nodeId && item.group_index === view.groupIndex));
+    view.element.classList.toggle("recommended-prerequisite-group", selected);
+    if (!plan) { view.status.textContent = pending ? "正在计算当前目的的先修要求…" : "先修状态尚未计算完成，请重试更新。"; continue; }
+    const missing = view.ids.filter(id => !planningKnown.has(id));
+    const numbers = missing.map(id => `知识点 ${nodeNumber(id)}`).join("、");
+    view.status.textContent = `${selected ? "当前推荐组 · " : ""}按当前目的已满足 ${view.ids.length - missing.length}/${view.ids.length} 项。${missing.length ? `尚缺：${numbers}。` : "此组先修要求已满足。"} 自报状态不等于独立检验通过。`;
   }
+  ui.lessonUnlockPreview.textContent = activeLessonId ? unlockPreviewText(activeLessonId) : "";
+  ui.lessonUnlockPreview.hidden = !ui.lessonUnlockPreview.textContent;
 }
 
 function prerequisiteExcerpt(value) {
@@ -3030,8 +3130,8 @@ function renderPrerequisites() {
   ui.prerequisiteRule.textContent = node.prerequisite_sets.length === 0
     ? "本图未列出先修内容；这不表示你已经掌握。"
     : node.prerequisite_sets.length > 1
-      ? "任选一组（OR）；每组内部的内容都需掌握（AND）。可按需展开简要讲解。"
-      : "以下内容需全部掌握（AND）。可按需展开简要讲解。";
+      ? "任选一组（OR）；每组内部都需满足当前学习目的的能力要求（AND）。可按需展开简要讲解。"
+      : "以下内容需全部满足当前学习目的的能力要求（AND）。可按需展开简要讲解。";
   for (const [groupIndex, ids] of node.prerequisite_sets.entries()) {
     const group = document.createElement("section");
     group.className = "prerequisite-group";
@@ -3107,7 +3207,7 @@ function renderPrerequisites() {
     }
     group.append(heading, groupStatus, list);
     ui.prerequisiteGroups.append(group);
-    prerequisiteGroupViews.push({ ids, status: groupStatus });
+    prerequisiteGroupViews.push({ ids, status: groupStatus, nodeId: node.id, groupIndex, element: group });
   }
   refreshPrerequisiteStatus();
   for (const view of prerequisiteViews) renderPrerequisitePreview(view);
@@ -3455,6 +3555,7 @@ function renderFollowupExercises(exercises) {
 
 function renderLesson(entry) {
   const lesson = entry.lesson;
+  if(typeof window.dispatchEvent==="function" && typeof CustomEvent==="function") window.dispatchEvent(new CustomEvent("mathpath-content-ready",{detail:{source_kind:"text",source_text:JSON.stringify(lesson),source_title:lesson.title}}));
   clearLessonEnrichment();
   ui.lessonPanel.setAttribute("aria-busy", "false");
   ui.lessonTitle.textContent = numberedNodeLabel(activeLessonId, lesson.title);
@@ -3644,7 +3745,7 @@ async function loadRequestedGraph(source, text = "") {
       cache: "no-store", signal: controller.signal,
     } : {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, mode: studyModeForModel() }), signal: controller.signal,
+      body: JSON.stringify({ text, mode: studyModeForModel(), ...(window.MathPathResearch?.selected() ? { workspace_id: window.MathPathResearch.selected() } : {}) }), signal: controller.signal,
     });
     if (!response.ok) {
       const message = await responseFailure(response, source);
@@ -3999,4 +4100,22 @@ renderProgress();
 renderChatContext(); renderChatMode(); renderChatMessages(); renderChatControls(); syncChatVisibility();
 loadExampleCatalog();
 
-initializeLibrary();
+document.getElementById("classroom-button").addEventListener("click", async event => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    if (await flushHistory() !== false) window.location.assign("/classroom");
+  } catch {
+    setGenerationError("当前学习记录尚未保存，请先处理保存提示或导出进度，再打开课堂解析。");
+  } finally { button.disabled = false; }
+});
+
+initializeLibrary().then(() => {
+  const query = window.location?.search;
+  if (!query) return;
+  const goal = new URLSearchParams(query).get("lecture_goal");
+  if (!goal?.trim()) return;
+  ui.input.value = goal.trim().slice(0, MAX_TEXT_LENGTH);
+  ui.generationMessage.textContent = "已填入课堂中的学习目标。确认学习目的后，点击“生成学习图”再开始。";
+  ui.input.focus();
+});

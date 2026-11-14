@@ -5,10 +5,11 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
-from graph_builder import KnowledgeGraph, NodeId
+from graph_builder import KnowledgeGraph, NodeId, strict_output_schema
 from lesson_builder import Lesson, _curated_lesson
 from llm_client import generate_text
 from study_builder import StudyError
+from memory_models import MemoryCandidate
 
 
 class HelpInput(BaseModel):
@@ -49,6 +50,13 @@ class ChatResponse(HelpResponse):
         schema["required"] = list(dict.fromkeys([*schema.get("required", []), "answer_status"]))
         schema["properties"]["answer_status"].pop("default", None)
         return schema
+
+
+class ChatWithMemory(ChatResponse):
+    theorems:list[MemoryCandidate]=Field(default_factory=list,max_length=4)
+
+    @classmethod
+    def model_json_schema(cls,*args,**kwargs):return strict_output_schema(super().model_json_schema(*args,**kwargs))
 
 
 class ChatTurn(BaseModel):
@@ -162,21 +170,27 @@ def build_learning_chat(body: ChatInput) -> ChatResponse:
             "turns": [turn.model_dump(mode="json") for turn in body.turns],
             "question": body.question,
         }, ensure_ascii=False)
+        from research_memory import recall_candidates
+        payload=json.loads(prompt);payload["candidate_memory"]=recall_candidates(None,body.question+" "+(lesson.title if lesson else ""));prompt=json.dumps(payload,ensure_ascii=False)
         try:
-            output = generate_text(prompt, instructions=CHAT_INSTRUCTIONS, json_schema=ChatResponse.model_json_schema())
+            output = generate_text(prompt, instructions=CHAT_INSTRUCTIONS+"\n请主动把本轮实际讲到的定理放入theorems供自动记忆，保留完整条件、量词、版本和疑问，不含定理则留空；candidate_memory仅供回查，不是已证事实。", json_schema=ChatWithMemory.model_json_schema())
         except Exception:
             # Keep provider exception bodies, URLs and submitted material away
             # from the dialogue and HTTP response; never replay the request.
             raise StudyError("模型对话未完成，请检查模型配置或网络后重试。") from None
         try:
-            result = ChatResponse.model_validate_json(output)
+            internal = ChatWithMemory.model_validate_json(output)
+            result = ChatResponse.model_validate(internal.model_dump(exclude={"theorems"}))
         except (ValidationError, TypeError):
             raise StudyError("模型对话结果格式不符合要求，请稍后重试。") from None
         if not result.response.strip():
             raise StudyError("模型未返回可显示的对话内容。")
         # Some compatible providers ignore the requested schema. Keep their text
         # available, but never treat an omitted capability signal as an answer.
-        status = result.answer_status if "answer_status" in result.model_fields_set else "uncertain"
+        status = result.answer_status if "answer_status" in internal.model_fields_set else "uncertain"
+        from research_memory import remember
+        from hashlib import sha256
+        remember([t.model_dump() for t in internal.theorems],source_key="learning-chat:"+sha256(body.question.encode()).hexdigest(),source="MathPath 学习问答；AI 候选，需核对原文。")
         return result.model_copy(update={"source": "model_candidate", "review_required": True,
                                          "answer_status": status})
     if lesson is None:

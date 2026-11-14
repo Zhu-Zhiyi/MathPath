@@ -1,0 +1,43 @@
+"use strict";
+// Service-worker checks with fake Chrome storage/tabs/fetch; no browser profile.
+const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
+const directory=path.join(__dirname,"..","browser-extension","mathpath-canvas");
+const id="a".repeat(32),popup={url:`chrome-extension://${id}/popup.html`},page={tab:{id:7},frameId:0,url:"https://v.sjtu.edu.cn/"};
+const box={local:{},session:{}},opened=[],sent=[],requests=[];let internal,external;
+const storage=type=>({setAccessLevel:async value=>assert.equal(value.accessLevel,"TRUSTED_CONTEXTS"),get:async key=>({[key]:box[type][key]}),set:async value=>Object.assign(box[type],value),remove:async key=>delete box[type][key]});
+const chrome={storage:{local:storage("local"),session:storage("session")},tabs:{create:async value=>opened.push(value),sendMessage:async(...args)=>sent.push(args)},runtime:{id,getURL:file=>`chrome-extension://${id}/${file}`,onMessage:{addListener:fn=>internal=fn},onMessageExternal:{addListener:fn=>external=fn}}};
+let nextResponse={papers:[]};
+const context=vm.createContext({chrome,URL,Map,Date,JSON,Number,Object,Promise,Error,AbortController,crypto:require("node:crypto").webcrypto,setTimeout,clearTimeout,fetch:async(url,options)=>{requests.push({url,options});return{ok:true,headers:{get:()=>"application/json"},text:async()=>JSON.stringify(nextResponse)};}});
+vm.runInContext(fs.readFileSync(path.join(directory,"background.js"),"utf8"),context);
+const message=(body,sender=page,fn=internal)=>new Promise(resolve=>{assert.equal(fn(body,sender,resolve),true);});
+async function main(){
+  assert.equal((await message({kind:"bridge",action:"lectures"})).ok,false);assert.equal(requests.length,0);
+  assert.equal((await message({kind:"preparePair",origin:"https://example.com"},popup)).ok,false);
+  assert.equal((await message({kind:"preparePair",origin:"http://127.0.0.1:8000"},popup)).ok,true);
+  const pending=box.session.pending,u=new URL(opened[0].url);assert.equal(u.pathname,"/canvas-setup");assert.equal(u.searchParams.get("nonce"),pending.nonce);
+  const pair={kind:"pair",nonce:pending.nonce,origin:pending.origin,token:"x".repeat(43),expires_at:Date.now()/1000+86400};
+  const sender={url:opened[0].url,frameId:0};
+  assert.equal((await message({...pair,nonce:"wrong"},sender,external)).ok,false);
+  assert.equal((await message(pair,{...sender,frameId:1},external)).ok,false);
+  assert.equal((await message(pair,{...sender,url:opened[0].url.replace("127.0.0.1","evil.invalid")},external)).ok,false);
+  assert.equal((await message(pair,sender,external)).ok,true);assert(!box.session.pending);
+  assert.equal((await message(pair,sender,external)).ok,false,"nonce is one-use");
+  const status=await message({kind:"status"},popup);assert.equal(status.connected,true);assert(!JSON.stringify(status).includes(pair.token));
+  const success=await message({kind:"bridge",action:"context",body:{time:15}});assert.equal(success.ok,true);
+  assert.equal(requests[0].url,"http://127.0.0.1:8000/canvas-bridge/context");assert.equal(requests[0].options.credentials,"omit");assert.equal(requests[0].options.headers.Authorization,"Bearer "+pair.token);
+  assert.equal((await message({kind:"bridge",action:"https://evil.invalid"})).ok,false);assert.equal(requests.length,1);
+  assert.equal((await message({kind:"bridge",action:"ask",body:{question:"x".repeat(60001)}})).ok,false);assert.equal(requests.length,1);
+  for(const url of ["https://evil.invalid","http://127.0.0.1:8000/settings/model","https://v.sjtu.edu.cn.evil.invalid/"]){assert.equal((await message({kind:"bridge",action:"lectures"},{...page,url})).ok,false);}
+  const clock={video_id:"11111111-1111-4111-8111-111111111111",time:15,area:100,playing:true,caption:"合成字幕"};
+  assert.equal((await message({kind:"clock",clock})).primary.video_id,clock.video_id);
+  const child={...page,frameId:4},clock2={...clock,video_id:"22222222-2222-4222-8222-222222222222",area:400};
+  assert.equal((await message({kind:"clock",clock:clock2},child)).primary.video_id,clock2.video_id);assert(sent.length>=2);
+  assert.equal((await message({kind:"clock",clock:{...clock,time:-1}})).ok,false);
+  assert.equal((await message({kind:"forget"},popup)).ok,true);assert.equal((await message({kind:"bridge",action:"lectures"})).ok,false);
+  const manifest=JSON.parse(fs.readFileSync(path.join(directory,"manifest.json")));assert.deepEqual(manifest.permissions,["storage"]);assert(!manifest.externally_connectable.ids);assert(!JSON.stringify(manifest).includes("<all_urls>"));
+  const content=fs.readFileSync(path.join(directory,"content.js"),"utf8");
+  for(const forbidden of [/document\.cookie/,/\.currentSrc\b/,/video\.src\b/,/localStorage/,/postMessage\(/])assert(!forbidden.test(content),"unexpected sensitive access: "+forbidden);
+  assert(content.includes('mode:"closed"'));assert(content.includes("trust:false"));assert(content.includes('removeEventListener("seeked"'));
+  console.log("PASS companion worker: scoped pairing/nonces/expiry, no token exposure to content, fixed local routes, sender checks, bounded clock election and public asset permissions. DOM/fullscreen acceptance is separate.");
+}
+main().catch(e=>{console.error(e);process.exitCode=1;});

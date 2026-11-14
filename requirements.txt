@@ -4,3 +4,4 @@ openai==3.26.0
 networkx==3.7
 PyJWT==2.15.1
 cryptography==50.0.2
+pypdf==7.1.0

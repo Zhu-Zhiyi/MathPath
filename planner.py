@@ -26,6 +26,27 @@ class ChosenGroup(BaseModel):
     group_index: int = Field(ge=0)
 
 
+class PrerequisiteGroupStatus(BaseModel):
+    """一整组 AND 先修的状态；多个组之间仍按 OR 解释。"""
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    node_id: NodeId
+    group_index: int = Field(ge=0)
+    prerequisite_ids: list[NodeId]
+    satisfied_ids: list[NodeId]
+    missing_ids: list[NodeId]
+    satisfied: bool
+    selected: bool
+
+
+class UnlockPreview(BaseModel):
+    """仅假设一个当前可学节点够用，列出刚满足先修的直接后续。"""
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    node_id: NodeId
+    newly_ready_ids: list[NodeId]
+
+
 class LearningStatus(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -42,6 +63,8 @@ class LearningStatus(BaseModel):
     planning_known_ids: list[NodeId] = Field(default_factory=list)
     mode: Literal["intuition", "application", "proof", "repair"] | None = None
     explanation: str = ""
+    prerequisite_groups: list[PrerequisiteGroupStatus] = Field(default_factory=list)
+    unlock_previews: list[UnlockPreview] = Field(default_factory=list)
 
 
 def _select_subgraph(by_id, target_id, known, original_order):
@@ -137,12 +160,38 @@ def _strict_learning_status(graph: KnowledgeGraph, known_ids: list[str]) -> Lear
                           completed=False)
 
 
+def _with_group_diagnostics(graph: KnowledgeGraph, result: LearningStatus) -> LearningStatus:
+    """解释原始先修组；预览不改变自报状态，也不连锁假定后续已经掌握。"""
+    known = set(result.planning_known_ids)
+    selected = {(item.node_id, item.group_index) for item in result.selected_groups}
+    groups = []
+    by_id = {node.id: node for node in graph.nodes}
+    for node in graph.nodes:
+        for index, prerequisite_ids in enumerate(node.prerequisite_sets):
+            satisfied = [node_id for node_id in prerequisite_ids if node_id in known]
+            missing = [node_id for node_id in prerequisite_ids if node_id not in known]
+            groups.append(PrerequisiteGroupStatus(
+                node_id=node.id, group_index=index, prerequisite_ids=list(prerequisite_ids),
+                satisfied_ids=satisfied, missing_ids=missing, satisfied=not missing,
+                selected=(node.id, index) in selected,
+            ))
+    previews = []
+    for node_id in result.ready_ids:
+        hypothetical = known | {node_id}
+        newly_ready = [blocked_id for blocked_id in result.blocked_ids
+                       if any(set(group).issubset(hypothetical)
+                              for group in by_id[blocked_id].prerequisite_sets)]
+        previews.append(UnlockPreview(node_id=node_id, newly_ready_ids=newly_ready))
+    return result.model_copy(update={"prerequisite_groups": groups, "unlock_previews": previews})
+
+
 def current_learning_status(graph: KnowledgeGraph, known_ids: list[str], *, mode=None, mastery=None) -> LearningStatus:
     """Keep self-reported full mastery separate from mode-specific prerequisite boundaries."""
     if mode is None:
         result = _strict_learning_status(graph, known_ids)
-        return result.model_copy(update={"planning_known_ids": list(result.known_ids),
+        result = result.model_copy(update={"planning_known_ids": list(result.known_ids),
             "explanation": "按自行标记全部掌握的节点计算先修；路线只比较需学节点数量。"})
+        return _with_group_diagnostics(graph, result)
     requirements = {
         "intuition": ("definition", "intuition"),
         "application": ("definition", "application"),
@@ -172,9 +221,10 @@ def current_learning_status(graph: KnowledgeGraph, known_ids: list[str], *, mode
     result = _strict_learning_status(graph, [node.id for node in graph.nodes if node.id in planning_known])
     description = {"intuition": "定义与直觉", "application": "定义与使用",
                    "proof": "定义、直觉与使用", "repair": "定义、直觉与使用"}[mode]
-    return result.model_copy(update={
+    result = result.model_copy(update={
         "known_ids": [node_id for node_id in result.known_ids if node_id in reported],
         "planning_known_ids": list(result.known_ids), "mode": mode,
         "explanation": f"当前按自报的{description}安排先修；节点有明确能力要求时按该要求。"
                        "这些标记不等于独立检验通过，路线只比较需学节点数量。",
     })
+    return _with_group_diagnostics(graph, result)

@@ -2,6 +2,8 @@
 
 import copy
 import json
+import os
+import tempfile
 from pathlib import Path
 import sys
 import unittest
@@ -46,6 +48,9 @@ def generated_card(node_id="goal"):
 
 class LessonTests(unittest.TestCase):
     def setUp(self):
+        temporary=tempfile.TemporaryDirectory(prefix="mathpath-lesson-test-",ignore_cleanup_errors=True)
+        self.addCleanup(temporary.cleanup)
+        environment=patch.dict(os.environ,{"MATHPATH_DATA_DIR":temporary.name});environment.start();self.addCleanup(environment.stop)
         lesson_builder.clear_lesson_cache()
         self.addCleanup(lesson_builder.clear_lesson_cache)
         configuration = patch.object(lesson_builder, "resolve_generation_config", side_effect=lambda *, default_model:
