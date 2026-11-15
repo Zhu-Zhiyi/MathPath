@@ -25,6 +25,7 @@ async function bridge(message) {
   let route = routes[message.action],rawBody=null;
   const b=message.body||{},uuid=v=>typeof v==='string'&&/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/.test(v);
   if(message.action==='videoBinding'&&typeof b.source_key==='string'&&/^[\da-f]{64}$/.test(b.source_key))route=['GET','video-bindings/'+b.source_key];
+  if(message.action==='videoFrame'&&uuid(b.job_id)&&Number.isInteger(b.index)&&b.index>=0&&b.index<1000)route=['GET','video-jobs/'+b.job_id+'/frames/'+b.index];
   if(['videoJob','videoAnalyze','videoCancel'].includes(message.action)&&uuid(b.job_id))route=[message.action==='videoJob'?'GET':'POST','video-jobs/'+b.job_id+(message.action==='videoJob'?'':message.action==='videoAnalyze'?'/analyze':'/cancel')];
   if(['videoFinish','videoAbort'].includes(message.action)&&uuid(b.import_id))route=['POST','video-imports/'+b.import_id+(message.action==='videoFinish'?'/finish':'/cancel')];
   if(message.action==='videoChunk'&&uuid(b.import_id)&&Number.isSafeInteger(b.offset)&&b.offset>=0&&b.offset<=2*1024**3&&typeof b.data==='string'&&b.data.length<=349528&&/^[A-Za-z0-9+/]*={0,2}$/.test(b.data)){

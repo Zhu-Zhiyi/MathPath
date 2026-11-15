@@ -154,6 +154,10 @@ def context(body):
                 if item["start_seconds"] <= position < item["end_seconds"]:
                     value["items"].append({"id": f"c{clip['index']}_i{index}", **item})
         value.update(source="classroom_analysis", gap=not bool(value["items"]), lecture_name=job["filename"])
+        from local_video import frame_list
+        frames = frame_list(body.lecture_id, position)
+        if frames:
+            value['frames'] = frames
     if body.workspace_id:
         value["research_workspace"] = memory.workspace(body.workspace_id)
         # Candidate memories cannot silently become research premises.

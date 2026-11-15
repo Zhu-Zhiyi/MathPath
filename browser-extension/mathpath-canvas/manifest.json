@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MathPath · Canvas 回放伴学",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "minimum_chrome_version": "124",
   "description": "在交大 Canvas / 课堂实录回放旁边，一键解析当前完整视频、同步笔记、提问并记录定理。",
   "permissions": ["storage"],

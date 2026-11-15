@@ -53,7 +53,7 @@ async def app_lifespan(application):
         shutdown_workers()
 
 
-app = FastAPI(title="MathPath", version="0.6.3", lifespan=app_lifespan)
+app = FastAPI(title="MathPath", version="0.6.4", lifespan=app_lifespan)
 app.state.desktop_local_only = bool(getattr(sys, "frozen", False) or os.environ.get("MATHPATH_DESKTOP"))
 
 

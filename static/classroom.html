@@ -9,6 +9,7 @@
   <script src="/static/vendor/katex/katex.min.js" defer></script>
   <script src="/static/classroom.js" defer></script>
   <script src="/static/classroom_notes.js" defer></script>
+  <script src="/static/classroom_local.js" defer></script>
   <script src="/static/classroom_tutor.js" defer></script>
   <script src="/static/note_features.js" defer></script>
 </head>
@@ -50,7 +51,8 @@
                 <div class="watch-toolbar"><button id="watch-fullscreen" class="secondary-button" type="button">伴学全屏 · 视频 + 笔记</button><span class="small-note">使用此按钮，全屏时保留右栏</span></div>
                 <p id="watch-fullscreen-status" class="small-note" role="status"></p>
                 <p id="lecture-player-note" class="small-note">播放时右栏自动显示对应笔记；点击笔记时间可回到原片段。</p>
-                <details id="lecture-model-settings" class="video-model-settings" open>
+                <section class="video-model-settings"><h3>整课解析 · 本机识别</h3><p class="small-note">本机转写声音、识别抽样画面的文字，沿用当前数学模型整理笔记。无需 Gemini 账号或视频密钥。首次自动下载约 238 MB 组件；识别文字会发送到所选数学模型，原视频与截图留在本机。</p><button id="local-generate" class="primary-button" type="button">生成解析</button><button id="local-cancel" class="secondary-button" type="button" hidden>停止生成</button><p id="local-status" class="status-line" role="status"></p><a href="/video-settings">本机识别与数学模型 →</a></section>
+                <details id="lecture-model-settings" class="video-model-settings" hidden>
                   <summary>视频解析设置</summary>
                   <p class="small-note">使用 Google 官方 Gemini 视频服务，同时读取声音与画面。这里单独填写视频 API 密钥，不沿用 DeepSeek 问答密钥。</p>
                   <form id="lecture-analysis-form" autocomplete="off">
@@ -104,7 +106,7 @@
           </div>
           <section id="lecture-delete-confirm" class="delete-confirm" role="alertdialog" aria-labelledby="lecture-delete-title" aria-describedby="lecture-delete-description" hidden><h3 id="lecture-delete-title">删除这条课堂记录？</h3><p id="lecture-delete-description"></p><div><button id="lecture-delete-no" class="secondary-button" type="button">保留课堂</button><button id="lecture-delete-yes" class="danger-button" type="button">确认删除</button></div></section>
         </section>
-        <section id="classroom-welcome" class="classroom-welcome"><span class="welcome-line" aria-hidden="true"></span><h2>让每一段推导都有来处</h2><p>先上传视频，再选择模型开始解析。声音听不清、板书被遮挡、证明有跳步的地方，会作为待核对内容保留下来。</p><div><span>定义与符号</span><span>公式与证明</span><span>例题与习题</span><span>原片段定位</span></div></section>
+        <section id="classroom-welcome" class="classroom-welcome"><span class="welcome-line" aria-hidden="true"></span><h2>让每一段推导都有来处</h2><p>先上传视频，再点击生成解析；无需视频 API 密钥。声音听不清、板书被遮挡、证明有跳步的地方，会作为待核对内容保留下来。</p><div><span>定义与符号</span><span>公式与证明</span><span>例题与习题</span><span>原片段定位</span></div></section>
       </div>
     </div>
     <footer class="classroom-footer">MathPath · 课堂解析是学习辅助，解析内容与补充说明均需核查。</footer>

@@ -18,7 +18,7 @@
     const check=()=>{if(signal?.aborted)throw new DOMException('Cancelled','AbortError');if(!isCurrent()||sourceOf(video)!==description.uri)throw Error('播放器已换到另一段视频，已停止导入旧视频。');};
     check();const old=await api('videoBinding',{source_key:description.key});
     if(old.lecture){onJob(old.lecture);progress('使用已保存的整课记录，无需重复读取。');const job=await api('videoAnalyze',{job_id:old.lecture.id});onJob(job);return job;}
-    const config=await api('videoSettings');if(!config.configured)throw Error('首次使用请先点“视频模型设置”。配置一次后，只需点生成解析。');
+    const config=await api('videoSettings');if(!config.configured)throw Error('首次使用请先点“本机识别与数学模型”。配置一次后，只需点生成解析。');
     let sid=null,reader;
     try{
       progress('正在读取当前完整视频（从 00:00 到结尾）…');

@@ -1,10 +1,9 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MathPath · 视频模型设置</title><link rel="stylesheet" href="/static/classroom.css"><script src="/static/video_settings.js" defer></script></head>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MathPath · 本机课堂识别</title><link rel="stylesheet" href="/static/classroom.css"><script src="/static/video_settings.js" defer></script></head>
 <body><main class="classroom-page" style="max-width:760px"><header class="classroom-header"><a class="brand" href="/">MathPath</a><a href="/classroom">课堂解析</a></header>
-<section class="upload-card"><h1>视频模型 · 配置一次</h1><p class="intro-text">保存后，在课堂回放右栏点击“生成解析”，就会读取当前整段视频，从 00:00 处理到结尾并自动显示笔记。</p>
-<p class="small-note">视频使用 Google Gemini 同时读取声音与画面。DeepSeek 的文字问答连接继续用于提问；文字模型密钥不能直接代替视频模型密钥。</p>
-<form id="video-settings-form" class="video-model-settings" autocomplete="off"><label for="video-key">视频 API 密钥</label><input id="video-key" type="password" maxlength="4096" autocomplete="off" required placeholder="加密保存在这台电脑，保存后不回显"><a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">获取 Gemini 密钥 ↗</a>
-<label for="video-model">视频模型</label><input id="video-model" value="gemini-3.8-flash" maxlength="120" required><label for="video-chunk">内部处理步长（整段视频仍全部处理）</label><select id="video-chunk"><option value="180">3 分钟</option><option value="300" selected>5 分钟</option><option value="600">10 分钟</option></select>
-<label class="consent-label"><input id="video-consent" type="checkbox"><span>我知道：点击“生成解析”后，当前完整视频会交给 Google 视频服务处理，并使用我填写的密钥额度。只保存设置不会上传视频。</span></label>
-<button id="video-save" class="primary-button" type="submit">保存视频连接</button><p id="video-status" role="status" class="status-line"></p></form>
-<p class="small-note">之后不必重复填写、上传文件、选择课堂或选择时间范围。视频读取受播放器和网站访问条件影响；解析过程显示进度，每完成一段就能阅读。生成过程中仍可正常播放和拖动进度。</p></section></main></body></html>
+<section id="video-settings-form" class="upload-card"><p class="step-label">无需视频服务账号</p><h1>本机识别，沿用当前数学模型</h1><p class="intro-text">回到课堂回放，点击一次“生成解析”。MathPath 自动读取完整视频，从 00:00 处理到结尾，笔记随后出现在右栏并跟随播放。</p>
+<ol><li>在电脑上转写声音，保留时间戳。</li><li>每分钟抽取一张画面，用 Windows 识别其中的文字；原画面保留供核对。</li><li>只把识别文字交给你当前选择的 MathPath 数学模型，整理定义、定理、证明思路和练习。</li></ol>
+<p id="video-status" role="status" class="status-line">正在检查本机组件与数学模型设置…</p><p id="video-runtime" class="small-note"></p><p id="video-model" class="small-note"></p>
+<p class="small-note">首次生成自动下载约 238 MB 的公开识别组件，之后复用；无需 Gemini 账号、视频 API 密钥或年龄验证。本机识别本身不产生模型调用费，整理笔记仍使用你所选连接的额度。视频、声音与截图不会发送给文字模型。</p>
+<p class="small-note">抽样和文字识别可能遗漏板书、图形及手写公式。文字模型没有直接观看视频；不能保证完整还原每个证明。笔记会标出不确定内容，原画面供对照。</p>
+<div class="analysis-actions"><a href="/" class="primary-button">数学模型连接</a><a href="/classroom" class="secondary-link">回到课堂解析</a></div></section></main></body></html>

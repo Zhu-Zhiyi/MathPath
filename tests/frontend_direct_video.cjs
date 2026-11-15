@@ -19,7 +19,7 @@ async function main(){
   assert(Buffer.concat(e.chunks).equals(bytes),'all bytes, including fragmented header, arrive from the beginning');assert(e.chunks.every(c=>c.length<=256*1024));
   const meta=e.calls.find(c=>c.action==='videoImport').body;assert.equal(meta.duration_seconds,2983.5);assert(!('time'in meta));assert(!JSON.stringify(e.calls).includes('synthetic-secret'),'signed URL stays in the browser only');
   assert.equal(e.calls.filter(c=>c.action==='videoAnalyze').length,1);assert.equal(e.video.currentTime,2000,'seeking does not change analysis scope or require rewinding');
-  const missing=environment({configured:false});await assert.rejects(missing.helper.generate(missing.video,await missing.helper.describe(missing.video),missing.api),/视频模型设置/);assert.equal(missing.downloads.length,0);
+  const missing=environment({configured:false});await assert.rejects(missing.helper.generate(missing.video,await missing.helper.describe(missing.video),missing.api),/本机识别与数学模型/);assert.equal(missing.downloads.length,0);
   const old=environment({old:{id:'already',status:'completed'}});await old.helper.generate(old.video,await old.helper.describe(old.video),old.api);assert.equal(old.downloads.length,0);assert(!old.calls.some(c=>c.action==='videoImport'));
   const changed=environment({change:true});await assert.rejects(changed.helper.generate(changed.video,await changed.helper.describe(changed.video),changed.api),/另一段视频/);assert(changed.calls.some(c=>c.action==='videoAbort'));assert(!changed.calls.some(c=>c.action==='videoAnalyze'));
   const partial=environment({status:206});await assert.rejects(partial.helper.generate(partial.video,await partial.helper.describe(partial.video),partial.api),/完整视频/);assert(!partial.calls.some(c=>c.action==='videoImport'));

@@ -26,7 +26,7 @@ import webbrowser
 from uuid import uuid4
 
 APP_NAME = "MathPath"
-APP_VERSION = "0.6.3"
+APP_VERSION = "0.6.4"
 RESOURCE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 
 
@@ -49,6 +49,8 @@ class OfflineBoundary:
         import lecture_provider
         import research_memory
         import canvas_video
+        import local_video_runtime
+        import local_video
         self.previous_notes_default=os.environ.get("MATHPATH_NOTES_DEFAULT_DIR")
         os.environ["MATHPATH_NOTES_DEFAULT_DIR"]=str(app_data_dir()/"notebook")
 
@@ -61,6 +63,8 @@ class OfflineBoundary:
         for module, name, counter in [
             (llm_client, "OpenAI", "model_requests"),
             (lecture_provider, "_request", "model_requests"),
+            (local_video, "generate_text", "model_requests"),
+            (local_video_runtime, "download", "external_auth_requests"),
             (research_memory, "_fetch_feed", "external_auth_requests"),
             (llm_client, "get_usable_session", "credential_reads"),
             (chatgpt_login, "get_usable_session", "credential_reads"),
@@ -429,7 +433,7 @@ def _check_companion_resources(server: LocalServer) -> dict:
     assert b"workspace-form" in server.request("research-workbench"), "research-page-bundled"
     assert b"pair-allow" in server.request("canvas-setup"), "canvas-setup-bundled"
     assert b"video-settings-form" in server.request('video-settings'), 'video-settings-page-bundled'
-    assert server.request('settings/video')['configured'] is False, 'no-video-credential-bundled'
+    assert server.request('settings/video')['local'] is True, 'local-video-default-bundled'
     for name in ("classroom.js", "classroom_notes.js", "classroom_tutor.js", "research.js", "research_entry.js", "canvas_demo.js", "video_settings.js"):
         assert len(server.request("static/" + name)) > 1000, "companion-script-bundled"
     assert server.request("lectures") == [], "temporary-classroom-list"

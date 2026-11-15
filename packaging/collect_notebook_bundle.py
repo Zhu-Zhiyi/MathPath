@@ -94,6 +94,9 @@ def main():
     if direct_check.get('status')!='ok' or not direct_check.get('one_click_full_video') or not direct_check.get('autobound_notes'):
         raise RuntimeError('One-click whole-video verification is incomplete')
     copy_file(release_dir/'direct-video-check.json','验证报告/一键整课解析检查.json')
+    recognition=load(release_dir/'local-recognition-check.json')
+    if recognition.get('status')!='ok' or recognition.get('real_classroom') is not False or recognition.get('real_model_calls')!=0:raise RuntimeError('Local recognition fixture verification is incomplete')
+    copy_file(release_dir/'local-recognition-check.json','验证报告/本机识别合成样例检查.json')
 
     # Snapshot only public, explicitly approved source paths, never the project tree.
     sources={e["path"] for e in manifest["source_files"]}
@@ -133,7 +136,7 @@ Canvas 伴学扩展：
 2. 开启开发者模式，点击“加载已解压的扩展程序”，选择本文件夹中的“Canvas伴学扩展”。
 3. 主程序保持运行，菜单“Canvas 伴学设置（在浏览器打开）”打开本机设置页。
 4. 在这个浏览器的扩展图标中填写页面地址栏里的 http://127.0.0.1:端口，点击连接，再在本机页面允许连接。
-5. 首次在侧栏“视频模型设置”保存自己的 Gemini 连接；之后每节课只需点“生成解析”。
+5. 沿用首页当前数学模型，侧栏直接点“生成解析”；无需 Gemini 或视频 API 密钥。首次自动下载约 238 MB 识别组件。
 默认当前主画面的完整视频（00:00 到结尾），自动读取、保存、解析并关联笔记，无需手动上传或选择时间。
 当前支持浏览器可读取的完整 MP4 / WebM；分段或受保护播放器会明确提示。全屏用“伴学全屏”。
 真实 Canvas 播放器兼容性和全屏仍需现场检查；本包没有宣称已经通过真实课堂验收。
@@ -149,7 +152,7 @@ Markdown 与 TeX 随笔记保存，PDF 需要本机 TeX Live / XeLaTeX；未安�
 账号与数据：本包没有附带任何人的账号、API 密钥、回放视频、历史、定理或研究问题。
 内置样例可离线使用。生成新内容前，请在“模型 / API 设置”填写你自己的连接。
 默认预填交大 DeepSeek 平台，使用者需要自己的可用平台账号与密钥；没有共享密钥。
-课堂视频解析需另填自己的多模态模型连接，只有点击“生成解析”才读取整段回放并提交至已配置的视频服务，未点击不会上传视频。
+课堂解析在本机转写声音和识别抽样画面，只有识别文字交给当前数学模型；视频与截图留在本机。未点击生成不会开始识别或调用模型。
 各项模型请求只有在相应按钮确认时发送，并按平台规则计费；本次打包自检未调用真实模型。
 个人数据在 %LOCALAPPDATA%\\MathPath；研究与定理在 .mathpath\\research-memory，课堂在 .mathpath\\lectures。
 原“完整备份学习库”不包含这两个新文件夹，请单独保管；个人数据不要加进对外分享包。

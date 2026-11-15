@@ -16,6 +16,8 @@ import main
 import canvas_video as video
 import lecture_store as store
 import canvas_companion as companion
+import local_video
+from model_settings import GenerationConfig
 
 RAW=b'\x00\x00\x00\x18ftypisom'+b'synthetic-video'*50
 
@@ -24,6 +26,8 @@ class CanvasVideoTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory(prefix='mathpath-full-video-',ignore_cleanup_errors=True);self.addCleanup(self.tmp.cleanup)
         self.env=patch.dict(os.environ,{'MATHPATH_DATA_DIR':self.tmp.name});self.env.start();self.addCleanup(self.env.stop)
+        self.preflight=patch.object(local_video,'preflight',return_value=GenerationConfig(provider='api',base_url='https://synthetic.invalid/v1',model='synthetic',api_format='chat_completions',output_mode='json_object',revision='synthetic',api_key='synthetic-local-key'))
+        self.preflight.start();self.addCleanup(self.preflight.stop)
         self.client=TestClient(main.app,base_url='http://127.0.0.1');self.addCleanup(self.client.close)
         self.addCleanup(lambda:video.imports.clear())
         p=self.client.post('/canvas/pair',json={'extension_id':'a'*32}).json()
@@ -47,7 +51,7 @@ class CanvasVideoTests(unittest.TestCase):
             r=self.config();self.assertEqual(r.status_code,200);self.assertNotIn('api_key',r.json())
             self.assertNotIn(b'synthetic-video-key',(video.root()/'connection.dpapi').read_bytes())
             public=self.client.get('/canvas-bridge/video-settings',headers=self.headers).json()
-            self.assertTrue(public['configured']);self.assertNotIn('api_key',public)
+            self.assertTrue(public['local']);self.assertNotIn('api_key',public)
             self.assertEqual(video.credentials()[1],'synthetic-video-key')
 
     def test_settings_reject_no_consent_and_foreign_origin(self):
@@ -85,11 +89,11 @@ class CanvasVideoTests(unittest.TestCase):
 
     def test_explicit_analyze_uses_saved_video_credentials(self):
         sid,_=self.begin();self.chunk(sid,0,RAW);job=self.finish(sid).json()
-        with patch.object(store,'start_analysis',return_value=job) as start:
+        with patch.object(local_video,'start',return_value=job) as start:
             r=self.client.post('/canvas-bridge/video-jobs/'+job['id']+'/analyze',headers=self.headers)
             self.assertEqual(r.status_code,200);self.assertEqual(start.call_count,1)
-            self.assertEqual(start.call_args.kwargs['api_key'],'synthetic-video-key')
-            self.assertTrue(start.call_args.kwargs['remote_upload_confirmed'])
+            self.assertEqual(start.call_args.args,(job['id'],))
+            self.assertEqual(start.call_args.kwargs,{})
             self.assertNotIn('time',start.call_args.kwargs)
 
     def test_completed_job_is_not_rebilled(self):

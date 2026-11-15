@@ -75,7 +75,7 @@
     rendered = key; content.replaceChildren();
     if (!clip) {
       status.textContent = lecture?.clips.length ? `当前 ${clock(time)} 没有已解析片段，不显示其他时间的笔记。` : "这堂课尚无解析笔记。";
-      content.append(node("p", "timeline-empty", lecture?.clips.length ? "可以从上方选择已解析片段阅读，或继续解析后面的课堂。" : "先在视频下方完成解析设置；每解析完一段，这里就能显示，无需等整堂课结束。"));
+      content.append(node("p", "timeline-empty", lecture?.clips.length ? "可以从上方选择已解析片段阅读，或继续解析后面的课堂。" : "点击视频下方“生成解析”；每解析完一段，这里就能显示，无需等整堂课结束。"));
       return;
     }
     const a = clip.analysis;
@@ -107,6 +107,12 @@
       if (a.practice.length) { const practice = section(content, "用习题检查理解"); a.practice.forEach((task, i) => question(practice, task, i)); }
       addList(content, "识别范围与缺口", a.coverage_notes);
       addList(content, "本段仍需核对", a.uncertainties, true);
+    }
+    if(lecture.analysis_config?.pipeline){
+      const d=node('details');d.append(node('summary','','对照本段原画面（抽样参考）'));content.append(d);
+      for(let n=0;n<Math.ceil((clip.end_seconds-clip.start_seconds)/60);n++){
+        const fig=node('figure'),img=node('img');img.loading='lazy';img.alt=`第 ${clip.index+1} 段原画面 ${n+1}`;img.style.maxWidth='100%';img.src=`/lectures/${lecture.id}/frames/${clip.index*10+n}`;fig.append(img);d.append(fig);
+      }
     }
     content.scrollTop = 0; highlight();
   }

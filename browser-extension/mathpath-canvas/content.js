@@ -12,7 +12,7 @@
   <aside class="panel" id="panel" aria-label="MathPath 回放伴学" hidden>
     <div class="head"><strong>MathPath 伴学</strong><button id="fullscreen">伴学全屏</button><button id="close" class="close" aria-label="收起侧栏">×</button></div>
     <div class="body"><p class="meta">默认解析当前完整视频，生成后随播放显示笔记。</p><p id="status" role="status" class="status"></p>
-    <section class="generate-video"><strong>当前视频 · 整课解析</strong><p id="video-range" class="meta">正在检测当前视频…</p><button id="generate-video">生成解析</button><button id="cancel-video" class="quiet" hidden>停止生成</button><p id="video-progress" class="status" role="status">点击后读取完整视频并使用已配置的视频模型；未点击不会上传视频。</p><button id="video-settings" class="quiet">视频模型设置（首次配置）</button></section>
+    <section class="generate-video"><strong>当前视频 · 整课解析</strong><p id="video-range" class="meta">正在检测当前视频…</p><button id="generate-video">生成解析</button><button id="cancel-video" class="quiet" hidden>停止生成</button><p id="video-progress" class="status" role="status">点击后在本机识别整段视频，再由当前数学模型整理笔记。首次自动下载识别组件，无需视频密钥。</p><button id="video-settings" class="quiet">本机识别与数学模型</button></section>
     <details><summary>更多选项：研究起点 / 已有课堂</summary>
       <label>研究背景（可选）<select id="workspace"><option value="">本次只学习</option></select></label>
       <button id="guidance" class="quiet">研究指引（调用模型）</button><button id="workbench" class="quiet">定理 / 科研工作台</button>
@@ -46,7 +46,7 @@
     option.textContent=`${job.filename} · ${job.completed_chunks} 段已解析`;
     if($("lecture").value!==job.id){$("lecture").value=job.id;$("offset").value='0';resetContext();}
     const labels={uploaded:'视频已保存，准备生成整课笔记。',completed:'整课解析已完成；笔记会随播放定位。',queued:'整课解析已排队。',uploading_remote:'完整视频正在提交至视频模型。',processing_remote:'视频模型正在读取声音与画面。',analyzing:`正在解析整课：${job.completed_chunks} / ${job.total_chunks} 段，每完成一段即可阅读。`,cleaning_remote:'正在清理模型服务临时视频，笔记已保留。',failed:'解析中断，已保留成功内容。再次点击生成解析可继续。',cancelled:'已停止后续解析，已完成笔记保留。',interrupted:'上次解析中断，点击生成解析可继续。'};
-    $("video-progress").textContent=labels[job.status]||'正在准备整课解析…';
+    $("video-progress").textContent=job.local_processing?.message||labels[job.status]||'正在准备整课解析…';
     $("generate-video").textContent=job.status==='completed'?'查看已生成解析':job.completed_chunks?'继续生成解析':'生成解析';
     const active=['queued','uploading_remote','processing_remote','analyzing','cleaning_remote'].includes(job.status);
     $("generate-video").disabled=!!generation||active;$("cancel-video").hidden=!generation&&!active;
@@ -94,7 +94,7 @@
     $("current-title").textContent = value.items.length ? value.items.map(r => r.title).join(" / ") : value.clip_summary?.title || (value.caption ? "当前字幕 / 手动片段" : "等待整课解析");
     $("explain").disabled=!value.items.length&&!value.caption;
     const out = $("current-source");
-    const sourceKey=JSON.stringify({items:value.items,caption:value.caption,summary:value.clip_summary});
+    const sourceKey=JSON.stringify({items:value.items,caption:value.caption,summary:value.clip_summary,frames:value.frames});
     if(out.getAttribute("data-notes-key")===sourceKey)return;
     out.setAttribute("data-notes-key",sourceKey);out.replaceChildren();
     for (const item of value.items) {
@@ -106,6 +106,15 @@
     }
     if(!value.items.length&&value.clip_summary){el('p',`${timestamp(value.clip_summary.start_seconds)}—${timestamp(value.clip_summary.end_seconds)} 的片段概览（此刻没有单独定位的知识点）`,out).className='meta';el('p',value.clip_summary.overview,out);}
     else if (!value.items.length) el("p",value.caption || (fullJob?'整课解析正在准备或尚未覆盖当前时刻。已完成的片段会自动显示，请查看上方进度。':'点击上方“生成解析”，读取当前整段视频并生成笔记。'),out);
+    if(value.frames?.length){
+      const details=el('details',undefined,out);el('summary','对照原画面（OCR 可能误识别公式）',details);
+      const epoch=state.epoch,lecture=$("lecture").value;
+      for(const f of value.frames){
+        const figure=el('figure',undefined,details);el('figcaption',`原画面 ${timestamp(f.time_seconds)} · 抽样参考`,figure);
+        const image=el('img',undefined,figure);image.alt=`${timestamp(f.time_seconds)} 的课堂原画面`;image.style.maxWidth='100%';
+        api('videoFrame',{job_id:lecture,index:f.index}).then(r=>{if(epoch===state.epoch&&figure.isConnected&&r.mime_type==='image/jpeg'&&/^[A-Za-z0-9+/=]+$/.test(r.data))image.src='data:image/jpeg;base64,'+r.data;}).catch(()=>el('p','原画面暂不可用。',figure));
+      }
+    }
     math(out);
   }
   async function sync() {

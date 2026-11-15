@@ -1,7 +1,16 @@
 "use strict";
 (() => {
   const $=id=>document.getElementById(id);
-  async function call(body){const r=await fetch('/settings/video',{method:body?'POST':'GET',cache:'no-store',headers:body?{'Content-Type':'application/json'}:{},...(body?{body:JSON.stringify(body)}:{})});const v=await r.json();if(!r.ok)throw Error(typeof v.detail==='string'?v.detail:'视频模型设置未完成。');return v;}
-  call().then(v=>{$('video-model').value=v.model;$('video-chunk').value=String(v.chunk_seconds);$('video-status').textContent=v.configured?'已配置视频连接。回到回放，点击“生成解析”即可；下方可更换连接。':'首次填写视频模型，保存后即可一键解析整段回放。';}).catch(e=>$('video-status').textContent=e.message);
-  $('video-settings-form').onsubmit=async e=>{e.preventDefault();const b=$('video-save');b.disabled=true;try{await call({api_key:$('video-key').value,model:$('video-model').value,chunk_seconds:Number($('video-chunk').value),remote_upload_confirmed:$('video-consent').checked});$('video-key').value='';$('video-status').textContent='已加密保存。现在回到课堂网页，点击 MathPath 侧栏的“生成解析”。';}catch(e){$('video-status').textContent=e.message;}finally{b.disabled=false;}};
+  // Reading settings never downloads tools or starts a model request.
+  async function refresh(){
+    try{
+      const response=await fetch('/settings/video',{cache:'no-store',credentials:'same-origin'});
+      const value=await response.json();
+      if(!response.ok)throw Error(typeof value.detail==='string'?value.detail:'暂时无法读取识别设置。');
+      $('video-status').textContent=value.configured?'已选择数学模型。回到回放，点击“生成解析”即可。':'请先在 MathPath 首页连接数学模型，然后直接生成整课解析。';
+      $('video-runtime').textContent=value.runtime.ready?'本机识别组件已下载；开始任务时会再次校验完整性。':`首次生成将准备 ${Math.ceil(value.runtime.download_bytes/1000000)} MB 的识别组件，过程中显示下载进度。`;
+      $('video-model').textContent=`笔记整理使用：${value.provider==='chatgpt'?'ChatGPT 登录连接':'自定义 API'} · ${value.model}。本页不会更换你的模型或读取视频服务密钥。`;
+    }catch(error){$('video-status').textContent=error.message;}
+  }
+  refresh();
 })();

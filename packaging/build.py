@@ -23,12 +23,12 @@ import zlib
 import zipfile
 
 PROJECT = Path(__file__).resolve().parents[1]
-VERSION = "0.6.3"
+VERSION = "0.6.4"
 MODULES = ["desktop.py", "main.py", "chatgpt_login.py", "graph_builder.py",
            "llm_client.py", "lesson_builder.py", "planner.py", "model_settings.py", "chatgpt_connection.py",
            "library_models.py", "library_store.py", "study_builder.py", "teaching_help.py", "learning_guidance.py",
            "lecture_models.py", "lecture_provider.py", "lecture_store.py", "lecture_routes.py", "lecture_tutor.py",
-           "canvas_companion.py", "canvas_video.py", "research_memory.py", "note_service.py", "memory_models.py"]
+           "canvas_companion.py", "canvas_video.py", "local_video.py", "local_video_runtime.py", "research_memory.py", "note_service.py", "memory_models.py"]
 EXCLUDED = {".mathpath", ".venv", "outputs", "evals", "tests", "__pycache__", "results"}
 FORBIDDEN = re.compile(r"(^|/)(\.mathpath|\.venv|evals|results|outputs|EBWebView|WebView2UserData)(/|$)|chatgpt_session\.dpapi|api_settings\.dpapi|host_id\.json|\.(sqlite3?|db)(?:[-.]|$)|(^|/)(desktop|state|workspace|progress)\.json$", re.IGNORECASE)
 PUBLIC_PROXY_LICENSE = "packaging/licenses/proxy_tools-LICENSE.txt"
@@ -104,7 +104,7 @@ def verified_katex_files() -> set[Path]:
 def allowed_source_files() -> list[Path]:
     files = [PROJECT / name for name in MODULES]
     katex = verified_katex_files()
-    for directory, suffixes in [("static", {".html", ".css", ".js", ".svg", ".png", ".woff2"}),
+    for directory, suffixes in [("static", {".html", ".css", ".js", ".svg", ".png", ".woff2", ".ps1"}),
                                  ("examples", {".json"})]:
         for path in (PROJECT / directory).rglob("*"):
             if path.is_file():
@@ -223,9 +223,9 @@ def license_notices(destination: Path) -> list[Path]:
     return files
 
 
-README = """MathPath 0.6.3 — Windows 桌面预览版
+README = """MathPath 0.6.4 — Windows 桌面预览版
 
-运行：先关闭旧版，再双击 MathPath-desktop-0.6.3-windows-x64.exe。无需安装 Python，无需保持命令行窗口。
+运行：先关闭旧版，再双击 MathPath-desktop-0.6.4-windows-x64.exe。无需安装 Python，无需保持命令行窗口。
 建议 Windows 10/11 64 位；需要 .NET Framework 4.6.2 或更新版本、Microsoft Edge WebView2 Runtime。
 如果缺少 WebView2，可从微软官网安装：https://developer.microsoft.com/microsoft-edge/webview2/
 
@@ -279,17 +279,18 @@ AI 反馈仍需核对；一次答对不表示整个知识点已经掌握，模�
 旧版工作区会尝试保留并迁入一条历史；无法保存时旧版浏览器记录仍保留。
 持久数据位于当前 Windows 用户的 %LOCALAPPDATA%\\MathPath，API 密钥与 ChatGPT 授权分别由 Windows DPAPI 加密保存。
 设置页只显示是否已保存密钥，不回显密钥原文。发行文件不包含开发机器的配置或登录凭证。
+课堂解析：本机转写声音与抽样画面 OCR，沿用当前数学模型，只发送识别文字。无需 Gemini 或视频密钥。首次下载约 238 MB 组件并校验哈希；板书、图形和数学术语可能误识别，需要对照保留的原画面核对。
 关闭窗口会同时停止 MathPath 本机服务。
 应用只监听 127.0.0.1。首次选出的空闲端口会被保留以恢复浏览器进度。
 如果该端口被别的程序占用，MathPath 会提示先关闭占用程序；不会静默切换端口导致进度无法恢复。
 
 离线自检（不登录、不调用模型）：
-MathPath-desktop-0.6.3-windows-x64.exe --self-test --report self-test.json
+MathPath-desktop-0.6.4-windows-x64.exe --self-test --report self-test.json
 真实窗口自检（会短暂打开并自动关闭窗口）：
-MathPath-desktop-0.6.3-windows-x64.exe --smoke-window --report window-test.json
+MathPath-desktop-0.6.4-windows-x64.exe --smoke-window --report window-test.json
 
 新增：课堂解析、Canvas 回放伴学、研究起点和定理 Markdown 记忆。
-v0.6.3：回放侧栏点击生成解析，默认当前完整视频，从 00:00 到结尾；自动关联笔记，无需手动上传或选时间。视频模型在设置中配置一次。
+v0.6.4：回放侧栏点击生成解析，默认当前完整视频，从 00:00 到结尾；自动关联笔记，无需手动上传或选时间。视频模型在设置中配置一次。
 笔记目录可选择，按日期和课程分类，C 单独存放。默认保存 Markdown 与 TeX，PDF 需本机 XeLaTeX。
 可选同步到指定目录并检查哈希，不覆盖旧笔记。模型整理的内容仍是需核对的草稿。
 首页“Canvas 伴学 / 科研记忆”进入工作台；主程序菜单也可在浏览器打开伴学设置，

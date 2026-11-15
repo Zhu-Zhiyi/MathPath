@@ -126,6 +126,10 @@ def get_job(job_id, *, summary=False):
         video = directory / "video.bin"
         result["video_available"] = bool(not video.is_symlink() and video.is_file()
                                          and video.resolve().parent == directory.resolve())
+        from local_video import progress
+        local = progress(job_id)
+        if local is not None:
+            result['local_processing'] = local
         return result
 
 

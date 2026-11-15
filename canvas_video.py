@@ -15,6 +15,7 @@ from chatgpt_login import atomic_write, protect_bytes
 from lecture_routes import tutor_payload, result
 import lecture_provider as provider
 import lecture_store as store
+import local_video
 
 router = APIRouter()
 lock = threading.RLock()
@@ -100,8 +101,7 @@ def binding(source_key):
 
 def start_import(body):
     # Configuration is checked before downloading hundreds of MB from the page.
-    config = settings()
-    if not config['configured']: raise store.LectureError('首次使用请先设置视频模型，之后只需点击生成解析。',409)
+    local_video.preflight()
     mime = store.validate_upload(body.filename,body.mime_type,body.size_bytes,body.duration_seconds)
     with lock:
         for sid,row in list(imports.items()):
@@ -162,8 +162,7 @@ def cancel(sid):
 def analyze(job_id):
     job=store.get_job(job_id)
     if job['status']=='completed' or job['status'] in store.ACTIVE:return job
-    config,key=credentials()
-    return store.start_analysis(job_id,api_key=key,model=config['model'],chunk_seconds=config['chunk_seconds'],remote_upload_confirmed=True)
+    return local_video.start(job_id)
 
 
 async def call(fn,*args):
@@ -174,11 +173,25 @@ async def call(fn,*args):
 
 @router.get('/settings/video')
 @router.get('/canvas-bridge/video-settings')
-def get_settings():return result(settings)
+def get_settings():return result(local_video.public_settings)
 
 
 @router.post('/settings/video')
 async def put_settings(request:Request):return await call(save_settings,await tutor_payload(request,VideoSettings))
+
+
+@router.post('/lectures/{job_id}/analyze-local')
+async def analyze_local(job_id:str):return await call(analyze,job_id)
+
+
+@router.get('/canvas-bridge/video-jobs/{job_id}/frames/{number}')
+def bridge_frame(job_id:str,number:int):return result(local_video.frame_data,job_id,number)
+
+
+@router.get('/lectures/{job_id}/frames/{number}')
+def local_frame(job_id:str,number:int):
+    from fastapi.responses import FileResponse
+    return FileResponse(result(local_video.frame_path,job_id,number),media_type='image/jpeg',headers={'Cache-Control':'no-store'})
 
 
 @router.get('/canvas-bridge/video-bindings/{source_key}')
