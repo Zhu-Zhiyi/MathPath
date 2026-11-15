@@ -21,7 +21,7 @@
       <p class="meta">请确认是同一节回放。解析含缺段时会明确显示；首次需在 MathPath 的课堂解析页上传并解析对应视频。</p>
       <div class="row"><label>时间偏移（秒）<input id="offset" type="number" value="0" min="-10800" max="10800" step="1"></label><label>手动时间（无视频时）<input id="manual-time" type="number" value="0" min="0" max="10800" step="1"></label></div>
     </details>
-    <div class="clock"><span id="clock" class="meta">正在检测视频…</span><h2 id="current-title">等待选择课堂或字幕</h2><div id="current-source" class="result"></div></div>
+    <div class="clock"><span id="clock" class="meta">正在检测视频…</span><h2>同步课堂笔记</h2><p class="meta">关联已解析课堂后随播放显示，无需点击解释或保存。</p><h3 id="current-title">等待选择课堂或字幕</h3><div id="current-source" class="result"></div></div>
     <details><summary>补充当前字幕 / 题目文字</summary><textarea id="caption" maxlength="8000" rows="4" placeholder="没有标准字幕轨道时，可粘贴当前片段。不会读取登录信息或视频地址。"></textarea><p class="meta">自动字幕仅来自播放器标准字幕轨道，网站自定义字幕可能无法读取。文字可能有数学错误，请核对。</p></details>
     <button id="explain">解释当前片段（调用模型）</button><span class="badge">AI 辅助 · 需核对</span><p class="meta">AI 会主动整理并保存定理记忆，无需你逐条选择。待核对内容保留标记。</p><div id="explanation" class="result"></div>
     <details><summary>同时保存对应笔记（可选）</summary><label class="check"><input id="note-enabled" type="checkbox">解释完成后生成笔记（另调用当前模型）</label><label>类型<select id="note-type"><option value="A">Type A · 系统学习 / 证明附录双链</option><option value="B">Type B · 问题与答案</option><option value="C">Type C · 讲课笔记</option></select></label><label>内容日期<input id="note-date" type="date"></label><p id="note-directory" class="meta">保存目录在本机工作台设置。</p><button id="note-settings" type="button" class="quiet">选择保存位置 / 分类</button><p id="note-status" class="status" role="status"></p></details>
@@ -48,13 +48,23 @@
   function resetContext() {
     state.epoch++; state.contextVersion++; state.contextKey = ""; state.context = null; state.explanation = null; state.memoryDraft=null; state.turns = [];
     $("explanation").replaceChildren(); $("turns").replaceChildren(); $("guidance-result").replaceChildren(); $("directions").replaceChildren();
+    $("current-source").replaceChildren();$("current-source").removeAttribute("data-notes-key");
     $("theorem-form").reset(); $("memory-status").textContent = ""; state.lastSync = 0;
   }
   function renderSource(value) {
     $("clock").textContent = `回放 ${timestamp(state.video?.currentTime ?? Number($("manual-time").value))} → 解析 ${timestamp(value.source_time)}${value.source_time < 0 ? "（偏移后为负）" : ""}`;
     $("current-title").textContent = value.items.length ? value.items.map(r => r.title).join(" / ") : value.caption ? "当前字幕 / 手动片段" : "此处没有已解析内容";
-    const out = $("current-source"); out.replaceChildren();
-    for (const item of value.items) { el("p",`${timestamp(item.start_seconds)}—${timestamp(item.end_seconds)} · ${item.kind}`,out).className = "meta"; el("p",item.source_summary,out); if (item.uncertainties?.length) el("p","课堂解析疑问："+item.uncertainties.join("；"),out).className="status"; }
+    const out = $("current-source");
+    const sourceKey=JSON.stringify({items:value.items,caption:value.caption});
+    if(out.getAttribute("data-notes-key")===sourceKey)return;
+    out.setAttribute("data-notes-key",sourceKey);out.replaceChildren();
+    for (const item of value.items) {
+      el("h3",item.title,out);el("p",`${timestamp(item.start_seconds)}—${timestamp(item.end_seconds)} · 课堂解析，待核对`,out).className="meta";
+      el("p",item.source_summary,out);
+      if(item.explanation){el("h4","辅助解释 / 几何直观",out);el("p",item.explanation,out);}
+      for(const [label,values]of [["公式与符号",item.formulas],["推导步骤（模型整理）",item.steps]])if(values?.length){el("h4",label,out);const list=el("ol",undefined,out);values.forEach(s=>el("li",s,list));}
+      if (item.uncertainties?.length) el("p","课堂解析疑问："+item.uncertainties.join("；"),out).className="status";
+    }
     if (!value.items.length) el("p",value.caption || "请关联已解析课堂、校准时间，或补充当前字幕。空缺时不会将相邻片段冒充为当前内容。",out);
     math(out);
   }

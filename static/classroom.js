@@ -360,6 +360,7 @@ function renderLecture(lecture) {
   classroom.lectureExportMarkdown.href = `/lectures/${lecture.id}/export?format=markdown`;
   classroom.lectureExportJson.href = `/lectures/${lecture.id}/export?format=json`;
   renderClips(); renderHistory(); updateControls();
+  window.MathPathClassroomNotes?.onLecture(lecture);
 }
 
 function schedulePoll(version) {
@@ -391,6 +392,7 @@ async function selectLecture(id) {
   selectedController = new AbortController();
   selectionPending = true; classroom.lectureRemoteConsent.checked = false; updateControls();
   window.MathPathTutor?.onPending(true);
+  window.MathPathClassroomNotes?.onPending(true);
   classroom.lectureDeleteConfirm.hidden = true;
   setClassroomError("");
   try {
@@ -401,7 +403,7 @@ async function selectLecture(id) {
     window.history.replaceState(null, "", url.pathname + url.search);
     schedulePoll(version);
   } catch (error) { if (version === selectionVersion) setClassroomError(error.message || "无法打开课堂记录。"); }
-  finally { if (version === selectionVersion) { selectionPending = false; updateControls(); window.MathPathTutor?.onPending(false); } }
+  finally { if (version === selectionVersion) { selectionPending = false; updateControls(); window.MathPathTutor?.onPending(false); window.MathPathClassroomNotes?.onPending(false); } }
 }
 
 function chooseVideo(file) {
@@ -477,6 +479,7 @@ async function uploadVideo() {
   selectionPending = true; classroom.lectureRemoteConsent.checked = false; updateControls();
   window.MathPathTutor?.onPending(true);
   classroom.lectureUploadProgress.value = 0; classroom.lectureUploadProgress.hidden = false;
+  window.MathPathClassroomNotes?.onPending(true);
   classroom.lectureUploadStatus.textContent = "正在将视频保存到本机，尚未发送给模型。";
   try {
     const lecture = await uploadRawVideo(file);
@@ -486,7 +489,7 @@ async function uploadVideo() {
     if (version === selectionVersion) { renderLecture(lecture); const url = new URL(window.location.href); url.searchParams.set("lecture", lecture.id); window.history.replaceState(null, "", url.pathname + url.search); }
     await refreshHistory();
   } catch (error) { classroom.lectureUploadStatus.textContent = error.message || "视频上传失败，所选文件已保留，可重新尝试。"; }
-  finally { uploadRequest = null; if (version === selectionVersion) { selectionPending = false; window.MathPathTutor?.onPending(false); } classroom.lectureUploadProgress.hidden = true; updateControls(); schedulePoll(selectionVersion); }
+  finally { uploadRequest = null; if (version === selectionVersion) { selectionPending = false; window.MathPathTutor?.onPending(false); window.MathPathClassroomNotes?.onPending(false); } classroom.lectureUploadProgress.hidden = true; updateControls(); schedulePoll(selectionVersion); }
 }
 
 async function startAnalysis(event) {
@@ -531,6 +534,7 @@ async function deleteLecture() {
     if (version === selectionVersion && currentLecture?.id === id) {
       ++selectionVersion; clearTimeout(pollTimer); selectedController?.abort(); currentLecture = null;
       window.MathPathTutor?.onLecture(null);
+      window.MathPathClassroomNotes?.onLecture(null);
       classroom.lecturePlayer.pause(); classroom.lecturePlayer.removeAttribute("src"); classroom.lecturePlayer.load();
       renderedVideoSource = "";
       renderedClips.clear(); classroom.lectureClips.replaceChildren(); classroom.lectureWorkspace.hidden = true; classroom.classroomWelcome.hidden = false;

@@ -211,6 +211,7 @@ window.MathPathTutor = {
   },
   selectItem(clip, index) {
     if (ctBusy || ctPending) return;
+    const questions = document.getElementById("watch-questions"); if (questions) questions.open = true;
     if (ct.item.value !== `c${clip}_i${index}`) ctSelectSource();
     ct.item.value = `c${clip}_i${index}`; ct.panel.scrollIntoView({ block: "center", behavior: "smooth" }); ct.question.focus();
     ctStatus("已定位这个片段。请说明具体卡点，再点击诊断。"); ctControls();

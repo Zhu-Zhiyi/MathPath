@@ -1,6 +1,6 @@
-# MathPath v0.6.1（预览版）
+# MathPath v0.6.2（预览版）
 
-**v0.6.1 新增**：AI 自动整理定理记忆、Canvas 五步接入指引，以及可勾选生成的 Type A/B/C 本地笔记，支持选择目录、按日期和课程分类、可选 PDF 与同步。保留课堂解析、回放伴学、研究起点和近期文献线索。详见 [自动记忆与笔记](docs/notes-and-memory.md)、[Canvas 接入](docs/canvas-companion.md)。真实 Canvas 播放器与全屏仍待现场联调；未勾选笔记时不会生成或导出笔记，自动记忆复用已有响应，不单独请求模型。
+**v0.6.2 新增**：打开已解析的课堂视频，右栏立即展示对应笔记并随播放时间切换，可固定阅读、选择 Type A/B/C、围绕当前片段提问；“伴学全屏”同时保留视频与笔记。本地生成文件另行勾选，可选保存目录、日期、课程分类与 PDF。保留 AI 自动定理记忆和 Canvas 五步指引；真实 Canvas 播放器兼容性仍待现场联调。侧栏阅读复用已保存的解析，不额外调用模型。
 
 MathPath 是面向数学学习的 Windows 原型：输入一个具体目标或最多 5000 字的短文本，用通用 LLM 生成知识点和 AND/OR 先修关系，再由 Python / NetworkX 计算学习子图。学习者可以查看解释、完成练习、记录笔记，在可移动的提问窗口连续追问，将学习历史归入项目，并在下次恢复学习。
 
@@ -16,9 +16,9 @@ MathPath 是面向数学学习的 Windows 原型：输入一个具体目标或�
 
 ## Windows 安装与便携运行
 
-**[下载 v0.6.1 Windows 预览包](https://github.com/Zhu-Zhiyi/MathPath/releases/tag/v0.6.1)**：下载日期开头的 `MathPath-v0.6.1-Windows.zip` 分享包并完整解压，阅读 `先看这里.txt`。旧版请先正常关闭，再运行新版。
+**[下载 v0.6.2 Windows 预览包](https://github.com/Zhu-Zhiyi/MathPath/releases/tag/v0.6.2)**：下载日期开头的 `MathPath-v0.6.2-Windows.zip` 分享包并完整解压，阅读 `先看这里.txt`。旧版请先正常关闭，再运行新版。
 
-分享文件夹包含安装版 `MathPath-setup-0.6.1-windows-x64.exe`、便携版 `MathPath-desktop-0.6.1-windows-x64.exe`、Canvas 伴学扩展、使用说明、源码快照和第三方许可；独立检查报告提供软件验证证据。GitHub 的“Latest”可能仍指向旧稳定版，可直接使用上面的预览版本链接。
+分享文件夹包含安装版 `MathPath-setup-0.6.2-windows-x64.exe`、便携版 `MathPath-desktop-0.6.2-windows-x64.exe`、Canvas 伴学扩展、使用说明、源码快照和第三方许可；独立检查报告提供软件验证证据。GitHub 的“Latest”可能仍指向旧稳定版，可直接使用上面的预览版本链接。
 
 - 安装版：双击安装程序，安装到当前用户的 `%LOCALAPPDATA%\Programs\MathPath`，创建桌面与开始菜单快捷方式，无需管理员权限。
 - 便携版：双击程序即可运行。程序内含 Python 运行时，不需要另装 Python、虚拟环境或打开终端。

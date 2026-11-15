@@ -26,7 +26,7 @@ import webbrowser
 from uuid import uuid4
 
 APP_NAME = "MathPath"
-APP_VERSION = "0.6.1"
+APP_VERSION = "0.6.2"
 RESOURCE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 
 
@@ -426,7 +426,7 @@ def _check_companion_resources(server: LocalServer) -> dict:
     assert b"lecture-start" in server.request("classroom"), "classroom-page-bundled"
     assert b"workspace-form" in server.request("research-workbench"), "research-page-bundled"
     assert b"pair-allow" in server.request("canvas-setup"), "canvas-setup-bundled"
-    for name in ("classroom.js", "classroom_tutor.js", "research.js", "research_entry.js", "canvas_demo.js"):
+    for name in ("classroom.js", "classroom_notes.js", "classroom_tutor.js", "research.js", "research_entry.js", "canvas_demo.js"):
         assert len(server.request("static/" + name)) > 1000, "companion-script-bundled"
     assert server.request("lectures") == [], "temporary-classroom-list"
     profile = server.request("research/workspaces", {"title": "打包自检研究背景", "intent": "question", "question": "合成问题：有限维条件用在哪里？"})

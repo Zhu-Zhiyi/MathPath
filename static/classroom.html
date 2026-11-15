@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
   <script src="/static/vendor/katex/katex.min.js" defer></script>
   <script src="/static/classroom.js" defer></script>
+  <script src="/static/classroom_notes.js" defer></script>
   <script src="/static/classroom_tutor.js" defer></script>
   <script src="/static/note_features.js" defer></script>
 </head>
@@ -46,7 +47,9 @@
             <div class="video-column">
               <div class="video-sticky">
                 <div class="video-shell"><video id="lecture-player" controls preload="metadata" playsinline aria-label="当前课堂视频"></video></div>
-                <p id="lecture-player-note" class="small-note">点击解析旁的时间，回到视频中的对应位置。</p>
+                <div class="watch-toolbar"><button id="watch-fullscreen" class="secondary-button" type="button">伴学全屏 · 视频 + 笔记</button><span class="small-note">使用此按钮，全屏时保留右栏</span></div>
+                <p id="watch-fullscreen-status" class="small-note" role="status"></p>
+                <p id="lecture-player-note" class="small-note">播放时右栏自动显示对应笔记；点击笔记时间可回到原片段。</p>
                 <details id="lecture-model-settings" class="video-model-settings" open>
                   <summary>视频解析设置</summary>
                   <p class="small-note">使用 Google 官方 Gemini 视频服务，同时读取声音与画面。这里单独填写视频 API 密钥，不沿用 DeepSeek 问答密钥。</p>
@@ -63,7 +66,20 @@
               </div>
             </div>
             <div class="analysis-column">
+              <section id="watch-notes" class="watch-notes" aria-labelledby="watch-notes-heading">
+                <div class="watch-notes-head"><div><span class="step-label">和视频一起读</span><h3 id="watch-notes-heading">当前课堂笔记</h3></div><span id="watch-note-clock" class="watch-note-clock">00:00</span></div>
+                <div class="watch-note-options"><label for="watch-note-type">阅读方式</label><select id="watch-note-type"><option value="A">Type A · 系统学习</option><option value="B">Type B · 问题与答案</option><option value="C">Type C · 讲授顺序</option></select><label class="watch-follow"><input id="watch-note-follow" type="checkbox" checked>跟随播放</label></div>
+                <label class="visually-hidden" for="watch-note-segment">选择课堂片段</label><select id="watch-note-segment" class="watch-note-segment"></select>
+                <p id="watch-note-status" class="small-note" role="status" aria-live="polite">有解析后，打开课堂就会在这里显示笔记。</p>
+                <div id="watch-note-content" class="watch-note-content"></div>
+                <div class="watch-note-actions"><button id="watch-note-ask" class="secondary-button" type="button">问问这一段</button><button id="watch-note-save" class="text-button" type="button">保存本段到本地…</button></div>
+                <p class="small-note">按已有课堂解析编排 · AI 内容待核对。阅读和切换不额外调用模型。</p>
+                <details id="classroom-local-save"><summary>保存到本机（可选）</summary><div id="classroom-export-slot"></div></details>
+              </section>
+              <details class="watch-secondary"><summary>解析进度与范围</summary>
               <section class="coverage-card" aria-labelledby="lecture-coverage-heading"><div class="section-heading"><h3 id="lecture-coverage-heading">这堂课解析到哪里了</h3><span id="lecture-coverage-value" class="coverage-value">尚未开始</span></div><progress id="lecture-analysis-progress" max="100" value="0" aria-label="视频时间区间处理进度"></progress><p id="lecture-job-status" class="status-line" role="status" aria-live="polite"></p><p id="lecture-coverage-note" class="small-note">按时间区间记录处理进度。模型读取的画面有采样，已处理不代表每个公式都已正确识别；数学内容仍需对照原视频核查。</p><p id="lecture-job-error" class="job-warning" hidden></p><p id="lecture-cleanup-warning" class="job-warning" hidden>云端文件删除尚未确认，请前往对应 Gemini 文件管理中检查；本地解析已保留。</p></section>
+              </details>
+              <details id="watch-questions" class="watch-secondary"><summary>提问与卡点诊断</summary>
               <section id="tutor-panel" class="tutor-panel" aria-labelledby="tutor-heading">
                 <p class="step-label">定位片段 → 说出卡点 → 做题确认</p>
                 <div class="section-heading"><h3 id="tutor-heading">这一步，为什么没跟上？</h3><button id="tutor-refresh" class="text-button" type="button">刷新诊断记录</button></div>
@@ -77,10 +93,13 @@
                 <label for="tutor-history">以前的卡点与作答</label><select id="tutor-history"><option value="">还没有诊断记录</option></select>
                 <div id="tutor-result"></div>
               </section>
+              </details>
+              <details class="watch-secondary"><summary>展开整堂课的逐段笔记</summary>
               <div class="timeline-heading"><h3>逐段课堂笔记</h3><span class="review-badge">模型解析 · 待核对</span></div>
               <p id="lecture-timeline-empty" class="timeline-empty">开始解析后，每完成一段就会在这里保存。无需等整堂课结束。</p>
               <div id="lecture-clips" class="lecture-clips"></div>
               <p id="lecture-partial-note" class="small-note" hidden></p>
+              </details>
             </div>
           </div>
           <section id="lecture-delete-confirm" class="delete-confirm" role="alertdialog" aria-labelledby="lecture-delete-title" aria-describedby="lecture-delete-description" hidden><h3 id="lecture-delete-title">删除这条课堂记录？</h3><p id="lecture-delete-description"></p><div><button id="lecture-delete-no" class="secondary-button" type="button">保留课堂</button><button id="lecture-delete-yes" class="danger-button" type="button">确认删除</button></div></section>

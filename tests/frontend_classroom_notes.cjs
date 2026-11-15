@@ -1,0 +1,42 @@
+"use strict";
+// Playback behavior against saved synthetic analysis, without models or files.
+const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
+const base=fs.readFileSync(path.join(__dirname,"frontend_classroom.cjs"),"utf8");
+const helpers=new Function("require","__dirname",base.slice(0,base.indexOf("async function main()"))+"\nreturn {opened,job,clip,flush,allText};")(require,__dirname);
+const {opened,job,clip,flush,allText}=helpers;
+async function main(){
+  const a=clip(0,0,300),b=clip(1,300,600);b.analysis.title="第二段：基与维数";b.analysis.items[0].title="第二段知识点";
+  const env=await opened(job({status:"completed",duration_seconds:600,total_chunks:2,completed_chunks:2,processed_seconds:600,coverage_ratio:1,clips:[a,b]}));
+  const documentEvents=new Map(),events=[];
+  env.document.addEventListener=(name,fn)=>documentEvents.set(name,fn);
+  env.context.window.dispatchEvent=e=>events.push(e);
+  env.context.CustomEvent=class{constructor(type,options){this.type=type;this.detail=options.detail;}};
+  vm.runInContext(fs.readFileSync(path.join(__dirname,"..","static","classroom_notes.js"),"utf8"),env.context);
+  const player=env.get("lecture-player"),content=env.get("watch-note-content"),count=env.requests.length;
+  assert(allText(content).includes("先看定义与结论"),"notes are present immediately after opening saved lecture");
+  assert(allText(content).includes("同调群"));
+  assert.equal(content.querySelectorAll("img,script,iframe").length,0);
+  player.currentTime=330;player.dispatch("timeupdate");
+  assert(allText(content).includes("第二段知识点"));assert(!allText(content).includes("同调群"),"previous segment is removed");
+  assert.match(env.get("watch-note-status").textContent,/第 2 段/);
+  env.get("watch-note-type").value="B";env.get("watch-note-type").dispatch("change");
+  assert(allText(content).includes("两个循环何时同调"));assert(!allText(content).includes("本段概览"));
+  assert.equal(content.querySelectorAll("details").every(d=>!d.open),true,"answers initially hidden");
+  env.get("watch-note-type").value="C";env.get("watch-note-type").dispatch("change");assert(allText(content).includes("按课堂讲授顺序"));
+  env.get("watch-note-segment").value="0";env.get("watch-note-segment").dispatch("change");
+  player.currentTime=450;player.dispatch("timeupdate");assert.match(env.get("watch-note-status").textContent,/固定阅读.*第 1 段/);
+  env.get("watch-note-follow").checked=true;env.get("watch-note-follow").dispatch("change");assert.match(env.get("watch-note-status").textContent,/第 2 段/);
+  player.currentTime=600;player.dispatch("ended");assert(!allText(content).includes("第二段知识点"));assert.match(env.get("watch-note-status").textContent,/没有已解析片段/);
+  player.ended=true;player.dispatch("ended");assert(allText(content).includes("第二段知识点"),"completed playback keeps the final notes");player.ended=false;
+  player.currentTime=20;player.dispatch("seeked");
+  env.get("watch-note-save").click();assert.equal(events.at(-1).type,"mathpath-note-preview");assert.equal(events.at(-1).detail.note_type,"C");
+  assert.equal(events.at(-1).detail.source_kind,"text");assert(events.at(-1).detail.source_title.includes("第 1 段"));
+  assert.equal(env.requests.length,count,"playback/type/export setup never calls models or writes files");
+  env.context.window.MathPathClassroomNotes.onPending(true);assert(env.get("watch-note-save").disabled);assert(!allText(content).includes("同调群"));
+  env.context.window.MathPathClassroomNotes.onLecture(null);env.context.window.MathPathClassroomNotes.onPending(false);assert(!allText(content).includes("同调群"));
+  env.get("watch-fullscreen").click();await flush();assert.match(env.get("watch-fullscreen-status").textContent,/专注视图/);
+  env.get("watch-fullscreen").click();await flush();assert(!env.document.querySelector(".lecture-reading-layout").classList.contains("classroom-watch-mode"));
+  assert.equal(env.requests.length,count);
+  console.log("PASS playback notes: immediate saved notes, timeline/type/manual-follow/gaps, safe math/text, opt-in export snapshot, pending isolation and fullscreen fallback; no model/file calls.");
+}
+main().catch(e=>{console.error(e);process.exitCode=1;});

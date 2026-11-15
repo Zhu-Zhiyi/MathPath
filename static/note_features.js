@@ -9,7 +9,7 @@
   <details><summary>保存位置与格式</summary><label>笔记根目录<input id="note-directory" maxlength="1000"></label><button id="note-pick" type="button">选择文件夹…</button><label>同步目录（可留空）<input id="note-mirror" maxlength="1000"></label><button id="note-pick-mirror" type="button">选择同步文件夹…</button><button id="note-save-settings" type="button">保存目录设置</button>
   <p class="note-detail">A/B 保存到课程分类目录，C 保存到“Type C 讲课笔记/课程”。每份用“日期_主题”新建，TeX/PDF 同名，保留旧笔记；不会追加到总笔记。</p><label><input id="note-pdf" type="checkbox" checked>同时编译 PDF（需要本机 XeLaTeX / TeX Live；缺少时保留 Markdown 与 TeX）</label><label><input id="note-sync" type="checkbox">同时同步到上面的目录并核对文件一致</label></details>
   <label><input id="note-auto" type="checkbox" checked>勾选生成笔记后，在下一次课堂解析完成或新内容生成时自动保存一份</label><button id="note-generate" type="button" disabled>生成并保存这份笔记</button><button id="note-new" type="button">重新整理为新笔记（另调用模型）</button><p id="note-status" role="status"></p><div id="note-files"></div>`;
-  const main=document.querySelector("main");if(!main)return;main.append(box);
+  const main=document.querySelector("main");if(!main)return;(document.getElementById("classroom-export-slot")||main).append(box);
   const checkStyle=document.createElement("style");checkStyle.textContent=".note-export-box input[type=checkbox]{display:inline-block;width:16px;height:16px;margin:0 8px 0 0;padding:0;vertical-align:middle}";box.append(checkStyle);
   const $=id=>box.querySelector("#"+id),state={current:null,history:null,config:null,lastKey:"",request:null,seen:new Set(),busy:false,queue:[]};
   const now=new Date();$("note-date").value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");
@@ -42,6 +42,7 @@
   for(const [button,target]of [["note-pick","note-directory"],["note-pick-mirror","note-mirror"]])$(button).onclick=async()=>{if(!window.pywebview?.api?.choose_notes_folder){message("当前在浏览器中，请在输入框粘贴文件夹路径；桌面程序内可以直接选择文件夹。");$(target).focus();return;}const path=await window.pywebview.api.choose_notes_folder();if(path)$(target).value=path;};
   $("note-save-settings").onclick=async()=>{try{populate(await api("/notes/settings",{directory:$("note-directory").value,mirror_directory:$("note-mirror").value}));state.lastKey="";}catch(e){message(e.message);}};
   window.addEventListener("mathpath-content-ready",e=>{state.current=e.detail;state.history=typeof currentHistory!=="undefined"?currentHistory?.id||null:null;const key=JSON.stringify(e.detail);if($("note-source").value==="current"&&$("note-enabled").checked&&$("note-auto").checked&&!state.seen.has(key)){const task={...options(),...e.detail};if(state.busy){if(state.queue.length<8){state.seen.add(key);state.queue.push(task);}else message("笔记队列已满，后续内容可手动选择保存。");return;}state.seen.add(key);generate(task);}});
+  window.addEventListener("mathpath-note-preview",e=>{if(state.busy){message("当前保存请求仍在进行，请等它完成后再选择其他片段。");return;}state.current=e.detail;state.history=null;$("note-source").value="current";$("note-type").value=e.detail.note_type;$("note-enabled").checked=false;$("note-generate").disabled=true;state.lastKey="";message("已选择材料："+e.detail.source_title+"。可先设置保存路径；勾选后才会调用模型生成并保存文件。");box.scrollIntoView({block:"nearest"});});
   api("/notes/settings").then(populate).catch(e=>message(e.message));refreshSources().catch(()=>{});
   if(location.hash==="#notes")box.scrollIntoView();
 })();

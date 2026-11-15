@@ -23,7 +23,7 @@ import zlib
 import zipfile
 
 PROJECT = Path(__file__).resolve().parents[1]
-VERSION = "0.6.1"
+VERSION = "0.6.2"
 MODULES = ["desktop.py", "main.py", "chatgpt_login.py", "graph_builder.py",
            "llm_client.py", "lesson_builder.py", "planner.py", "model_settings.py", "chatgpt_connection.py",
            "library_models.py", "library_store.py", "study_builder.py", "teaching_help.py", "learning_guidance.py",
@@ -223,9 +223,9 @@ def license_notices(destination: Path) -> list[Path]:
     return files
 
 
-README = """MathPath 0.6.1 — Windows 桌面预览版
+README = """MathPath 0.6.2 — Windows 桌面预览版
 
-运行：先关闭旧版，再双击 MathPath-desktop-0.6.1-windows-x64.exe。无需安装 Python，无需保持命令行窗口。
+运行：先关闭旧版，再双击 MathPath-desktop-0.6.2-windows-x64.exe。无需安装 Python，无需保持命令行窗口。
 建议 Windows 10/11 64 位；需要 .NET Framework 4.6.2 或更新版本、Microsoft Edge WebView2 Runtime。
 如果缺少 WebView2，可从微软官网安装：https://developer.microsoft.com/microsoft-edge/webview2/
 
@@ -284,12 +284,12 @@ AI 反馈仍需核对；一次答对不表示整个知识点已经掌握，模�
 如果该端口被别的程序占用，MathPath 会提示先关闭占用程序；不会静默切换端口导致进度无法恢复。
 
 离线自检（不登录、不调用模型）：
-MathPath-desktop-0.6.1-windows-x64.exe --self-test --report self-test.json
+MathPath-desktop-0.6.2-windows-x64.exe --self-test --report self-test.json
 真实窗口自检（会短暂打开并自动关闭窗口）：
-MathPath-desktop-0.6.1-windows-x64.exe --smoke-window --report window-test.json
+MathPath-desktop-0.6.2-windows-x64.exe --smoke-window --report window-test.json
 
 新增：课堂解析、Canvas 回放伴学、研究起点和定理 Markdown 记忆。
-v0.6.1：AI 自动整理记忆，无需逐条保存；Canvas 五步连接指引；可勾选生成 Type A/B/C 笔记。
+v0.6.2：打开已解析课堂，右栏直接显示同步笔记；Type A/B/C 阅读、片段提问与伴学全屏。AI 自动整理记忆；本地保存另行勾选。
 笔记目录可选择，按日期和课程分类，C 单独存放。默认保存 Markdown 与 TeX，PDF 需本机 XeLaTeX。
 可选同步到指定目录并检查哈希，不覆盖旧笔记。模型整理的内容仍是需核对的草稿。
 首页“Canvas 伴学 / 科研记忆”进入工作台；主程序菜单也可在浏览器打开伴学设置，

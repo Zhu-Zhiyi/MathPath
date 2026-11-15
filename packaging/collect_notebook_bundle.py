@@ -86,6 +86,10 @@ def main():
         copy_file(source,"验证报告/"+target)
     for filename,target in [("docs/canvas-companion.md","Canvas伴学与科研记忆.md"),("docs/classroom.md","课堂解析.md"),("docs/notes-and-memory.md","自动记忆与ABC笔记.md")]:
         copy_file(PROJECT/filename,"说明/"+target)
+    playback_check=load(release_dir/"playback-notes-check.json")
+    if playback_check["status"]!="ok" or not playback_check["real_media_clock_updates_notes"] or not playback_check["export_remains_opt_in"]:
+        raise RuntimeError("Playback sidebar verification is incomplete")
+    copy_file(release_dir/"playback-notes-check.json","验证报告/视频右栏笔记检查.json")
 
     # Snapshot only public, explicitly approved source paths, never the project tree.
     sources={e["path"] for e in manifest["source_files"]}
@@ -114,6 +118,12 @@ def main():
 两种运行方式任选一种；无需安装 Python。Windows 10/11 64 位，需有 WebView2。
 本包未作 Windows 代码签名。不要在 ZIP 压缩包内部直接启动 EXE。
 
+打开课堂视频并阅读：
+主界面进入“课堂解析”，从“我的课堂”打开已有解析的视频。
+右侧直接显示笔记，随播放进度切换；可选 Type A/B/C，取消“跟随播放”可固定阅读。
+点击“问问这一段”提问；使用“伴学全屏”同时保留视频与笔记。
+阅读已有笔记不调用模型；点击“保存本段到本地…”后，另行勾选并设置目录才生成文件。
+
 Canvas 伴学扩展：
 1. Chrome 打开 chrome://extensions 或 Edge 打开 edge://extensions。
 2. 开启开发者模式，点击“加载已解压的扩展程序”，选择本文件夹中的“Canvas伴学扩展”。
@@ -125,7 +135,7 @@ Canvas 伴学扩展：
 科研入口：主界面“Canvas 伴学 / 科研记忆”。先说明研究问题，或选学习后探索；
 AI 自动整理定理记忆，无需逐条保存；候选与已核对分开，旧版保留。
 可勾选生成 Type A/B/C 笔记并选择保存目录。A 结论在前、证明附录双链；B 问题与答案；C 按讲授顺序。
-按日期和课程分类，C 放“Type C 讲课笔记”。不勾选笔记就不生成或导出，勾选后按当前模型计费。
+按日期和课程分类，C 放“Type C 讲课笔记”。不勾选本地保存就不调用导出模型或创建笔记文件，勾选后按当前模型计费。
 Markdown 与 TeX 随笔记保存，PDF 需要本机 TeX Live / XeLaTeX；未安装时保留源文件。
 课后可查近两年文献，模型建议是候选，仍需全文阅读、查新和数学核对。
 常见定理记录具体版本和条件，非标准定理保留完整陈述；Markdown 旧版会保留。
