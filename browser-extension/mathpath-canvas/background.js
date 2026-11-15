@@ -1,6 +1,6 @@
 "use strict";
 const trustedStorage = chrome.storage.local.setAccessLevel({accessLevel:"TRUSTED_CONTEXTS"});
-const routes = Object.freeze({lectures:["GET","lectures"],workspaces:["GET","workspaces"],createWorkspace:["POST","workspaces"],context:["POST","context"],explain:["POST","explain"],ask:["POST","ask"],saveTheorem:["POST","theorems"],explore:["POST","explore"],guidance:["POST","guidance"],notesSettings:["GET","notes/settings"],generateNotes:["POST","notes/generate"]});
+const routes = Object.freeze({lectures:["GET","lectures"],workspaces:["GET","workspaces"],createWorkspace:["POST","workspaces"],context:["POST","context"],explain:["POST","explain"],ask:["POST","ask"],saveTheorem:["POST","theorems"],explore:["POST","explore"],guidance:["POST","guidance"],notesSettings:["GET","notes/settings"],generateNotes:["POST","notes/generate"],videoSettings:["GET","video-settings"],videoImport:["POST","video-imports"]});
 const clocks = new Map();
 function localOrigin(value) {
   const u = new URL(value);
@@ -22,13 +22,21 @@ async function connection() {
   return {...c,origin:localOrigin(c.origin)};
 }
 async function bridge(message) {
-  const route = routes[message.action]; if (!route) throw Error("不支持的伴学操作。");
+  let route = routes[message.action],rawBody=null;
+  const b=message.body||{},uuid=v=>typeof v==='string'&&/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/.test(v);
+  if(message.action==='videoBinding'&&typeof b.source_key==='string'&&/^[\da-f]{64}$/.test(b.source_key))route=['GET','video-bindings/'+b.source_key];
+  if(['videoJob','videoAnalyze','videoCancel'].includes(message.action)&&uuid(b.job_id))route=[message.action==='videoJob'?'GET':'POST','video-jobs/'+b.job_id+(message.action==='videoJob'?'':message.action==='videoAnalyze'?'/analyze':'/cancel')];
+  if(['videoFinish','videoAbort'].includes(message.action)&&uuid(b.import_id))route=['POST','video-imports/'+b.import_id+(message.action==='videoFinish'?'/finish':'/cancel')];
+  if(message.action==='videoChunk'&&uuid(b.import_id)&&Number.isSafeInteger(b.offset)&&b.offset>=0&&b.offset<=2*1024**3&&typeof b.data==='string'&&b.data.length<=349528&&/^[A-Za-z0-9+/]*={0,2}$/.test(b.data)){
+    const decoded=atob(b.data);if(!decoded.length||decoded.length>256*1024)throw Error('视频分块过大。');rawBody=Uint8Array.from(decoded,c=>c.charCodeAt(0));route=['POST','video-imports/'+b.import_id+'/chunks?offset='+b.offset];
+  }
+  if (!route) throw Error("不支持的伴学操作。");
   const c = await connection(), controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 150000);
   try {
     const response = await fetch(c.origin + "/canvas-bridge/" + route[1], {
       method:route[0],credentials:"omit",redirect:"error",signal:controller.signal,
-      headers:{"Authorization":"Bearer " + c.token,"X-MathPath-Extension":chrome.runtime.id,...(route[0] === "POST" ? {"Content-Type":"application/json"} : {})},
-      ...(route[0] === "POST" ? {body:cleanBody(message.body)} : {})
+      headers:{"Authorization":"Bearer " + c.token,"X-MathPath-Extension":chrome.runtime.id,...(route[0] === "POST" ? {"Content-Type":rawBody?'application/octet-stream':"application/json"} : {})},
+      ...(route[0] === "POST" ? {body:rawBody||cleanBody(message.body)} : {})
     });
     if (!response.headers.get("content-type")?.includes("application/json")) throw Error("MathPath 没有返回有效数据，请检查端口。");
     const raw = await response.text(); if (raw.length > 600000) throw Error("返回片段过长。");
@@ -61,6 +69,7 @@ chrome.runtime.onMessage.addListener((message,sender,respond) => {
     }
     if (message.kind === "forget" && popupSender(sender)) { await chrome.storage.local.remove("connection"); return {forgotten:true}; }
     if (message.kind === "openWorkbench") { const c = await connection(); await chrome.tabs.create({url:c.origin+"/research-workbench"+(message.section==="notes"?"#notes":"")}); return {opened:true}; }
+    if (message.kind === 'openVideoSettings') { const c=await connection(); await chrome.tabs.create({url:c.origin+'/video-settings'});return {opened:true}; }
     throw Error("不支持的伴学操作。");
   })().then(value => respond({ok:true,...value})).catch(error => respond({ok:false,error:error.name === "AbortError" ? "请求超时，请稍后重试。" : error.message === "Failed to fetch" ? "无法连接本机 MathPath，请检查软件与端口。" : error.message}));
   return true;

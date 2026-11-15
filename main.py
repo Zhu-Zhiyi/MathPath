@@ -32,6 +32,7 @@ from lecture_store import shutdown_workers
 from canvas_companion import router as canvas_router, bridge_guard
 from research_memory import router as research_router
 from note_service import router as notes_router
+from canvas_video import router as video_router
 
 PROJECT_DIR = Path(__file__).resolve().parent
 STATIC_DIR = PROJECT_DIR / "static"
@@ -52,7 +53,7 @@ async def app_lifespan(application):
         shutdown_workers()
 
 
-app = FastAPI(title="MathPath", version="0.6.1", lifespan=app_lifespan)
+app = FastAPI(title="MathPath", version="0.6.3", lifespan=app_lifespan)
 app.state.desktop_local_only = bool(getattr(sys, "frozen", False) or os.environ.get("MATHPATH_DESKTOP"))
 
 
@@ -76,6 +77,7 @@ app.include_router(lecture_router)
 app.include_router(canvas_router)
 app.include_router(research_router)
 app.include_router(notes_router)
+app.include_router(video_router)
 
 
 @app.get("/", response_class=FileResponse, include_in_schema=False)
@@ -88,6 +90,12 @@ def home():
 def classroom():
     return FileResponse(STATIC_DIR / "classroom.html", media_type="text/html",
                         headers={"Cache-Control": "no-store"})
+
+
+@app.get('/video-settings',include_in_schema=False)
+def video_settings_page():
+    return FileResponse(STATIC_DIR/'video_settings.html',media_type='text/html',headers={
+        'Cache-Control':'no-store','Content-Security-Policy':"frame-ancestors 'none'",'X-Frame-Options':'DENY'})
 
 
 @app.get("/canvas-setup", include_in_schema=False)

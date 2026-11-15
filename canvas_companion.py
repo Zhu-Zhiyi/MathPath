@@ -147,6 +147,9 @@ def context(body):
     if body.lecture_id:
         job = store.get_job(body.lecture_id)
         for clip in job["clips"]:
+            if clip['start_seconds'] <= position < clip['end_seconds']:
+                value['clip_summary']={'title':clip['analysis']['title'],'overview':clip['analysis']['overview'],
+                    'start_seconds':clip['start_seconds'],'end_seconds':clip['end_seconds']}
             for index, item in enumerate(clip["analysis"]["items"]):
                 if item["start_seconds"] <= position < item["end_seconds"]:
                     value["items"].append({"id": f"c{clip['index']}_i{index}", **item})
@@ -183,7 +186,7 @@ def model_value(payload, instructions, schema, configuration=None):
 def explain(body):
     data = context(body)
     if not data["items"] and not body.caption.strip():
-        raise store.LectureError("这个时间尚无解析或字幕。请关联课堂、校准时间，或粘贴当前片段字幕。", 422)
+        raise store.LectureError("当前时刻的知识点尚未生成。请先点击“生成解析”处理整段视频，或等待这一时间段完成。", 422)
     configuration = resolve_generation_config(default_model=MODEL)
     key = json.dumps({"context": {k:v for k,v in data.items() if k!="candidate_memory"}, "configuration": config_identity(configuration)}, ensure_ascii=False, sort_keys=True)
     with _lock:

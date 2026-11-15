@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MathPath · 视频模型设置</title><link rel="stylesheet" href="/static/classroom.css"><script src="/static/video_settings.js" defer></script></head>
+<body><main class="classroom-page" style="max-width:760px"><header class="classroom-header"><a class="brand" href="/">MathPath</a><a href="/classroom">课堂解析</a></header>
+<section class="upload-card"><h1>视频模型 · 配置一次</h1><p class="intro-text">保存后，在课堂回放右栏点击“生成解析”，就会读取当前整段视频，从 00:00 处理到结尾并自动显示笔记。</p>
+<p class="small-note">视频使用 Google Gemini 同时读取声音与画面。DeepSeek 的文字问答连接继续用于提问；文字模型密钥不能直接代替视频模型密钥。</p>
+<form id="video-settings-form" class="video-model-settings" autocomplete="off"><label for="video-key">视频 API 密钥</label><input id="video-key" type="password" maxlength="4096" autocomplete="off" required placeholder="加密保存在这台电脑，保存后不回显"><a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer">获取 Gemini 密钥 ↗</a>
+<label for="video-model">视频模型</label><input id="video-model" value="gemini-3.8-flash" maxlength="120" required><label for="video-chunk">内部处理步长（整段视频仍全部处理）</label><select id="video-chunk"><option value="180">3 分钟</option><option value="300" selected>5 分钟</option><option value="600">10 分钟</option></select>
+<label class="consent-label"><input id="video-consent" type="checkbox"><span>我知道：点击“生成解析”后，当前完整视频会交给 Google 视频服务处理，并使用我填写的密钥额度。只保存设置不会上传视频。</span></label>
+<button id="video-save" class="primary-button" type="submit">保存视频连接</button><p id="video-status" role="status" class="status-line"></p></form>
+<p class="small-note">之后不必重复填写、上传文件、选择课堂或选择时间范围。视频读取受播放器和网站访问条件影响；解析过程显示进度，每完成一段就能阅读。生成过程中仍可正常播放和拖动进度。</p></section></main></body></html>

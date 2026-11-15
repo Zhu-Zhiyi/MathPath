@@ -7,7 +7,7 @@ import zipfile
 
 PROJECT = Path(__file__).resolve().parents[1]
 EXTENSION = PROJECT / "browser-extension" / "mathpath-canvas"
-FILES = ["manifest.json", "background.js", "content.js", "panel.css", "popup.html", "popup.js", "popup.css", "先看这里.md"]
+FILES = ["manifest.json", "background.js", "direct_video.js", "content.js", "panel.css", "popup.html", "popup.js", "popup.css", "先看这里.md"]
 
 
 def build():
@@ -33,13 +33,13 @@ def build():
     names = FILES + included + ["vendor/katex/provenance.json"]
     output = PROJECT / "outputs" / "canvas-companion"
     output.mkdir(parents=True, exist_ok=True)
-    archive = output / "MathPath-Canvas-Companion-0.2.1.zip"
+    archive = output / "MathPath-Canvas-Companion-0.3.0.zip"
     with zipfile.ZipFile(archive,"w",zipfile.ZIP_DEFLATED) as zipped:
         for name in names:
             path = EXTENSION / name
             if path.is_symlink() or not path.resolve().is_relative_to(EXTENSION.resolve()): raise RuntimeError("Unexpected extension path")
             zipped.write(path, "mathpath-canvas/" + name)
-    report = {"extension_version":"0.2.1", "backend":"MathPath 0.6.2 desktop or current source", "sha256":hashlib.sha256(archive.read_bytes()).hexdigest(),
+    report = {"extension_version":"0.3.0", "backend":"MathPath 0.6.3 desktop or current source", "sha256":hashlib.sha256(archive.read_bytes()).hexdigest(),
               "files":names, "private_data_included":False, "live_canvas_acceptance":"not performed"}
     (output / "package-check.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     print(str(archive))
